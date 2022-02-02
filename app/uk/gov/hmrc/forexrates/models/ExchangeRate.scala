@@ -16,6 +16,6 @@
 
 package uk.gov.hmrc.forexrates.models
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
-case class ExchangeRate(date: LocalDateTime, baseCurrency: String, targetCurrency: String, value: BigDecimal)
+case class ExchangeRate(date: LocalDate, baseCurrency: String, targetCurrency: String, value: BigDecimal)
