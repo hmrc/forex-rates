@@ -19,17 +19,19 @@ package uk.gov.hmrc.forexrates.connectors
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.forexrates.base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.concurrent.IntegrationPatience
 import play.api.Application
 import play.api.test.Helpers.running
 import uk.gov.hmrc.forexrates.testutils.EcbForexData
 
-class EcbForexConnectorSpec extends SpecBase with WireMockHelper {
+class EcbForexConnectorSpec extends SpecBase with WireMockHelper with IntegrationPatience {
 
   private val url = "/rss/fxref-gbp.html"
 
   private def application: Application = {
     new GuiceApplicationBuilder()
       .configure(
+        "microservice.services.ecb-forex.protocol" -> "http",
         "microservice.services.ecb-forex.host" -> "127.0.0.1",
         "microservice.services.ecb-forex.port" -> server.port
       )

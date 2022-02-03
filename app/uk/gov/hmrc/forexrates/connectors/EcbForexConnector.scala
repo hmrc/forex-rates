@@ -17,21 +17,21 @@
 package uk.gov.hmrc.forexrates.connectors
 
 import uk.gov.hmrc.forexrates.config.AppConfig
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.connectors.EcbForexHttpParser._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class EcbForexConnector @Inject()(
                                    httpClient: ProxiedHttpClient,
                                    appConfig: AppConfig
-                                 ) {
+                                 )(implicit ec: ExecutionContext) {
 
-  def getFeed(currency: String): Future[Seq[ExchangeRate]] = {
+  def getFeed(currency: String): Future[EcbForexResponse] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    httpClient.GET[Seq[ExchangeRate]](
+    httpClient.GET[EcbForexResponse](
       appConfig.ecbForexUrl,
       Seq.empty
     )

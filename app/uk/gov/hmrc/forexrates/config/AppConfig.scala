@@ -34,5 +34,5 @@ class AppConfig @Inject()
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
-  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex")
+  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex") + "/rss/fxref-gbp.html"
 }
