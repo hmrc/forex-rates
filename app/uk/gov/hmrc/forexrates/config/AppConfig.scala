@@ -16,19 +16,23 @@
 
 package uk.gov.hmrc.forexrates.config
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
+import play.api.libs.ws.WSProxyServer
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.play.http.ws.WSProxyConfiguration
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfig @Inject()
-  (
-    config: Configuration
-  , servicesConfig: ServicesConfig
-  ) {
+(
+  config: Configuration,
+  servicesConfig: ServicesConfig
+) {
 
+  lazy val wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration("proxy", config)
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
+  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex")
 }
