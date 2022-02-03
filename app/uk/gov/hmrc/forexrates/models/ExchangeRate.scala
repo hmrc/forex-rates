@@ -16,6 +16,39 @@
 
 package uk.gov.hmrc.forexrates.models
 
+import play.api.libs.json.{OFormat, OWrites, Reads, __}
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+
 import java.time.LocalDate
 
 case class ExchangeRate(date: LocalDate, baseCurrency: String, targetCurrency: String, value: BigDecimal)
+
+object ExchangeRate {
+
+  val reads: Reads[ExchangeRate] = {
+
+    import play.api.libs.functional.syntax._
+
+    (
+      (__ \ "date").read(MongoJavatimeFormats.localDateFormat) and
+        (__ \ "baseCurrency").read[String] and
+        (__ \ "targetCurrency").read[String] and
+        (__ \ "value").read[BigDecimal]
+      ) (ExchangeRate.apply _)
+  }
+
+  val writes: OWrites[ExchangeRate] = {
+
+    import play.api.libs.functional.syntax._
+
+    (
+      (__ \ "date").write(MongoJavatimeFormats.localDateFormat) and
+        (__ \ "baseCurrency").write[String] and
+        (__ \ "targetCurrency").write[String] and
+        (__ \ "value").write[BigDecimal]
+      ) (unlift(ExchangeRate.unapply))
+  }
+
+implicit val format: OFormat[ExchangeRate] = OFormat(reads, writes)
+
+}
