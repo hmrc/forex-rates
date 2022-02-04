@@ -1,3 +1,4 @@
+import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import scoverage.ScoverageKeys
@@ -23,7 +24,11 @@ lazy val microservice = Project(appName, file("."))
       ".*Routes.*;" + ".*AppConfig.*;",
     ScoverageKeys.coverageMinimumStmtTotal := 78,
     ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
+    ScoverageKeys.coverageHighlighting := true,
+    RoutesKeys.routesImport ++= Seq(
+      "java.time.LocalDate",
+      "uk.gov.hmrc.forexrates.models.Binders._"
+    )
     // ***************
   )
   .settings(publishingSettings: _*)
