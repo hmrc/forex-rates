@@ -54,15 +54,26 @@ class ForexRepository @Inject()(
       .headOption()
   }
 
-  def insert(exchangeRate: ExchangeRate): Future[Option[ExchangeRate]] = {
+  def get(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String): Future[Seq[ExchangeRate]] = {
     collection
-      .insertOne(exchangeRate)
+      .find(Filters.and(
+        Filters.gte("date", dateFrom),
+        Filters.lte("date", dateTo),
+        Filters.equal("baseCurrency", baseCurrency),
+        Filters.equal("targetCurrency", targetCurrency)
+      ))
       .toFuture()
-      .map(_ => Some(exchangeRate))
+  }
+
+  def insert(exchangeRate: Seq[ExchangeRate]): Future[Seq[ExchangeRate]] = {
+    collection
+      .insertMany(exchangeRate)
+      .toFuture()
+      .map(_ => exchangeRate)
       .recover {
         case e: Exception =>
           logger.info(s"There was an error while inserting exchange rate data ${e.getMessage}", e)
-          None
+          Seq.empty
       }
   }
 }
