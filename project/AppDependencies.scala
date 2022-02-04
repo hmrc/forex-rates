@@ -18,6 +18,6 @@ object AppDependencies {
     "org.scalatestplus"       %% "scalacheck-1-15"            % "3.2.11.0",
     "org.scalatestplus"       %% "mockito-3-4"                % "3.2.10.0",
     "org.mockito"             %% "mockito-scala"              % "1.17.0",
-    "com.vladsch.flexmark"    %  "flexmark-all"               % "0.36.8"
+    "com.vladsch.flexmark"    %  "flexmark-all"               % "0.62.2"
   ).map(_ % "test, it")
 }
