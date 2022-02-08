@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.forexrates.base
+package uk.gov.hmrc.forexrates.formats
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.OptionValues
-import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.forexrates.generators.Generators
+import java.time.format.{DateTimeFormatter, FormatStyle}
+import java.time.ZoneId
+import java.util.Locale
 
-trait SpecBase
-  extends AnyFreeSpec
-    with Matchers
-    with OptionValues
-    with ScalaFutures
-    with MockitoSugar
-    with Generators {
+object Format {
 
+  val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter
+    .ofPattern("yyyy-MM-dd")
+    .withLocale(Locale.UK)
+    .withZone(ZoneId.systemDefault())
 }

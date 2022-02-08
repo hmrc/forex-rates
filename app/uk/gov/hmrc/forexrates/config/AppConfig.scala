@@ -34,5 +34,10 @@ class AppConfig @Inject()
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
-  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex") + "/rss/fxref-gbp.html"
+  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex")
+
+  val initialDelay: Int = config.get[Int]("features.forex-scheduler.initial-delay")
+  val intervalMinutes: Int = config.get[Int]("features.forex-scheduler.interval-minutes")
+  val hourToRun: Int = config.get[Int]("features.forex-scheduler.hour-to-run")
+  val currencies: Seq[String] = config.get[Seq[String]]("features.forex-scheduler.currencies")
 }

@@ -32,8 +32,8 @@ class EcbForexConnector @Inject()(
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     httpClient.GET[EcbForexResponse](
-      appConfig.ecbForexUrl,
-      Seq.empty
+      url = appConfig.ecbForexUrl + s"/rss/fxref-${currency.toLowerCase}.html",
+      headers = Seq.empty
     )
   }
 

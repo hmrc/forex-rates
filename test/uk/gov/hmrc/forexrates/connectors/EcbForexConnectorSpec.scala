@@ -22,7 +22,10 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.IntegrationPatience
 import play.api.Application
 import play.api.test.Helpers.running
+import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.testutils.EcbForexData
+
+import java.time.LocalDate
 
 class EcbForexConnectorSpec extends SpecBase with WireMockHelper with IntegrationPatience {
 
@@ -54,7 +57,13 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
         val connector = app.injector.instanceOf[EcbForexConnector]
         val result = connector.getFeed("GBP").futureValue
 
-        result mustBe Seq()
+        result mustBe Seq(
+          ExchangeRate(LocalDate.of(2022,1, 27), "EUR", "GBP", BigDecimal(0.83368)),
+          ExchangeRate(LocalDate.of(2022,1, 26), "EUR", "GBP", BigDecimal(0.83458)),
+          ExchangeRate(LocalDate.of(2022,1, 25), "EUR", "GBP", BigDecimal(0.83713)),
+          ExchangeRate(LocalDate.of(2022,1, 24), "EUR", "GBP", BigDecimal(0.83803)),
+          ExchangeRate(LocalDate.of(2022,1, 21), "EUR", "GBP", BigDecimal(0.83633))
+        )
       }
     }
 

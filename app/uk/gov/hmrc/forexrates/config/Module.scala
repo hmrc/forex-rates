@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.forexrates.base
+package uk.gov.hmrc.forexrates.config
 
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.OptionValues
-import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.forexrates.generators.Generators
+import com.google.inject.AbstractModule
 
-trait SpecBase
-  extends AnyFreeSpec
-    with Matchers
-    with OptionValues
-    with ScalaFutures
-    with MockitoSugar
-    with Generators {
+import java.time.{Clock, ZoneOffset}
 
+class Module extends AbstractModule {
+
+  override def configure(): Unit = {
+    bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
+  }
 }

@@ -19,8 +19,7 @@ package uk.gov.hmrc.forexrates.testutils
 object EcbForexData {
 
   val exampleXml: String =
-    """
-      |<?xml version="1.0" encoding="utf-8"?>
+    """<?xml version="1.0" encoding="utf-8"?>
       |<rdf:RDF  xmlns = "http://purl.org/rss/1.0/" xmlns:cb = "http://www.cbwiki.net/wiki/index.php/Specification_1.1" xmlns:dc = "http://purl.org/dc/elements/1.1/" xmlns:dcterms = "http://purl.org/dc/terms/" xmlns:rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation = "http://www.w3.org/1999/02/22-rdf-syntax-ns# rdf.xsd" >
       |    <channel  rdf:about = "http://www.ecb.europa.eu/rss/gbp.html">
       |        <title>ECB | Pound sterling (GBP) - Euro foreign exchange reference rates</title>
