@@ -1,7 +1,14 @@
 
 # forex-rates
 
-This is a placeholder README.md for a new repository
+This API retrieves and stores exchange rate data from the ECB RSS feed.
+
+Resources
+----------
+
+| Method | URL                                           | Description                                                             |
+| :----: |-----------------------------------------------|-------------------------------------------------------------------------|
+| GET    | /rates/{date}/{baseCurrency}/{targetCurrency} | Retrieves exchamge rate data for date, baseCurrency and targetCurrency. |
 
 ### License
 
