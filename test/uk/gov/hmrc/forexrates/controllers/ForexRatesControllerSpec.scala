@@ -69,5 +69,28 @@ class ForexRatesControllerSpec extends SpecBase {
       }
     }
   }
+
+  ".get date range" - {
+    val dateTo = requestDate.plusDays(5)
+    lazy val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.successful(Seq(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.toJson(Seq(exchangeRate))
+      }
+    }
+  }
 }
 
