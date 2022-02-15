@@ -16,13 +16,19 @@
 
 package uk.gov.hmrc.forexrates.config
 
-import com.google.inject.AbstractModule
+import play.api.inject.{Binding, Module}
+import play.api.{Configuration, Environment}
+import uk.gov.hmrc.forexrates.scheduler.jobs.{RetrieveForexRatesJob, RetrieveForexRatesJobImpl}
+import uk.gov.hmrc.forexrates.services.{EcbForexService, EcbForexServiceImpl}
 
 import java.time.{Clock, ZoneOffset}
 
-class Module extends AbstractModule {
+class ModuleBindings extends Module {
 
-  override def configure(): Unit = {
-    bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
-  }
+  override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
+    bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC)),
+    bind[EcbForexService].to[EcbForexServiceImpl].eagerly(),
+    bind[RetrieveForexRatesJob].to[RetrieveForexRatesJobImpl].eagerly()
+  )
 }
+

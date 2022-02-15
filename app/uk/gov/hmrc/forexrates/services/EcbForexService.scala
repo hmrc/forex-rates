@@ -19,27 +19,41 @@ package uk.gov.hmrc.forexrates.services
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.connectors.EcbForexConnector
 import uk.gov.hmrc.forexrates.logging.Logging
+import uk.gov.hmrc.forexrates.scheduler.ScheduledService
 
 import java.time.{Clock, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class EcbForexService @Inject()(ecbForexConnector: EcbForexConnector,
-                                appConfig: AppConfig
-                               )(implicit executionContext: ExecutionContext) extends Logging {
+trait EcbForexService extends ScheduledService[Boolean] with Logging
 
-  def triggerFeedUpdate(): Future[Unit] = {
+class EcbForexServiceImpl @Inject()(ecbForexConnector: EcbForexConnector,
+                                appConfig: AppConfig
+                               ) extends EcbForexService {
+
+
+  override val jobName: String = "RetrieveForexRatesJob"
+
+  override def invoke(implicit ec: ExecutionContext): Future[Boolean] = {
+    for{
+      _ <- triggerFeedUpdate()
+    } yield {
+      true
+    }
+  }
+
+  def triggerFeedUpdate()(implicit ec: ExecutionContext) = {
 
     val allCurrencyInserts = appConfig.currencies.map { currency =>
       // TODO should we check if already have latest for the day?
 
-       ecbForexConnector.getFeed(currency).flatMap { feedForCurrency =>
-         val allInsertsOfExchangeRatesForCurrency = feedForCurrency.map { exchangeRate =>
-           // TODO push to repo
-           Future.successful(exchangeRate)
-         }
+      ecbForexConnector.getFeed(currency).flatMap { feedForCurrency =>
+        val allInsertsOfExchangeRatesForCurrency = feedForCurrency.map { exchangeRate =>
+          // TODO push to repo
+          Future.successful(exchangeRate)
+        }
 
-         Future.sequence(allInsertsOfExchangeRatesForCurrency)
+        Future.sequence(allInsertsOfExchangeRatesForCurrency)
       }
 
     }
