@@ -27,7 +27,7 @@ class ModuleBindings extends Module {
 
   override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
     bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC)),
-    bind[EcbForexService].to[EcbForexServiceImpl].eagerly(),
+    bind[EcbForexService].to[EcbForexServiceImpl],
     bind[RetrieveForexRatesJob].to[RetrieveForexRatesJobImpl].eagerly()
   )
 }

@@ -20,7 +20,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.forexrates.base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.IntegrationPatience
+import org.xml.sax.SAXParseException
 import play.api.Application
+import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND}
 import play.api.test.Helpers.running
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.testutils.EcbForexData
@@ -40,6 +42,8 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
       )
       .build()
   }
+
+  val errorStatuses = Seq(BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR)
 
   "EcbForexConnector get" - {
     "return feed items" in {
@@ -64,6 +68,46 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
           ExchangeRate(LocalDate.of(2022,1, 24), "EUR", "GBP", BigDecimal(0.83803)),
           ExchangeRate(LocalDate.of(2022,1, 21), "EUR", "GBP", BigDecimal(0.83633))
         )
+      }
+    }
+
+    "throw exception xml is invalid" in {
+      val app = application
+
+      server.stubFor(
+        get(urlEqualTo(url))
+          .willReturn(aResponse()
+            .withStatus(200)
+            .withBody("invalid body")
+          )
+      )
+
+      running(app) {
+        val connector = app.injector.instanceOf[EcbForexConnector]
+        val result = connector.getFeed("GBP")
+
+        whenReady(result.failed) { exp => exp mustBe a[SAXParseException] }
+      }
+    }
+
+    errorStatuses.foreach { status =>
+      s"return empty sequence and log the error when $status received from ecb" in {
+        val app = application
+
+        server.stubFor(
+          get(urlEqualTo(url))
+            .willReturn(aResponse()
+              .withStatus(500)
+              .withBody("error")
+            )
+        )
+
+        running(app) {
+          val connector = app.injector.instanceOf[EcbForexConnector]
+          val result = connector.getFeed("GBP").futureValue
+
+          result mustBe Seq.empty
+        }
       }
     }
 
