@@ -60,7 +60,9 @@ class EcbForexServiceImpl @Inject()(
   private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
     for{
       retrievedFeed <- ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
-      savedRates <- forexRepository.get(retrievedFeed.head.date, retrievedFeed.last.date, retrievedFeed.head.baseCurrency, retrievedFeed.head.targetCurrency)
+      savedRates <- if(retrievedFeed.nonEmpty){
+        forexRepository.get(retrievedFeed.head.date, retrievedFeed.last.date, retrievedFeed.head.baseCurrency, retrievedFeed.head.targetCurrency)
+      } else Future.successful(Seq.empty)
     } yield{
       val pairedFeeds = retrievedFeed.map(retrievedRate => (retrievedRate, savedRates.find(savedFeed => savedFeed.date == retrievedRate.date)))
       pairedFeeds.filter(pair => pair._2.exists(_.value != pair._1.value)).foreach(
