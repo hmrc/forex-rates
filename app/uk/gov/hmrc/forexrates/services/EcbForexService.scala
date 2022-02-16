@@ -47,29 +47,16 @@ class EcbForexServiceImpl @Inject()(
   }
 
   def triggerFeedUpdate()(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
-
     val allCurrencyInserts = appConfig.currencies.map { currency =>
-      getRatesToSave(currency).flatMap(
-        rates => forexRepository.insert(rates)
-      )
+      getRatesToSave(currency)
     }
     Future.sequence(allCurrencyInserts).map(_.flatten)
   }
 
 
   private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
-    for{
-      retrievedFeed <- ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
-      savedRates <- if(retrievedFeed.nonEmpty){
-        forexRepository.get(retrievedFeed.head.date, retrievedFeed.last.date, retrievedFeed.head.baseCurrency, retrievedFeed.head.targetCurrency)
-      } else Future.successful(Seq.empty)
-    } yield{
-      val pairedFeeds = retrievedFeed.map(retrievedRate => (retrievedRate, savedRates.find(savedFeed => savedFeed.date == retrievedRate.date)))
-      pairedFeeds.filter(pair => pair._2.exists(_.value != pair._1.value)).foreach(
-        conflict => logger.error(s"Conflict found when retrieving rates. Retrieved: ${conflict._1} Previously saved: ${conflict._2.get}")
-      )
-        pairedFeeds.filter(pair => pair._2.isEmpty).map(_._1)
-    }
+    ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
+      .flatMap(feeds => forexRepository.insertIfNotPresent(feeds))
   }
 
 }
