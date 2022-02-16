@@ -5,7 +5,7 @@ import org.mockito.MockitoSugar.when
 import org.scalatest.OptionValues.convertOptionToValuable
 import play.api.http.Status.OK
 import play.api.inject.bind
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.forexrates.models.ExchangeRate
@@ -52,7 +52,7 @@ class ForexRatesControllerSpec extends SpecBase {
       }
     }
 
-    "must return forex rates when no data is found" in {
+    "must return Not Found when no data is found" in {
 
       when(mockRepository.get(requestDate, baseCurrency, targetCurrency)) thenReturn Future.successful(None)
 
@@ -89,6 +89,24 @@ class ForexRatesControllerSpec extends SpecBase {
 
         status(result) mustEqual OK
         contentAsJson(result) mustEqual Json.toJson(Seq(exchangeRate))
+      }
+    }
+
+    "must return empty sequence when data is not found" in {
+
+      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.successful(Seq.empty)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual JsArray()
       }
     }
   }
