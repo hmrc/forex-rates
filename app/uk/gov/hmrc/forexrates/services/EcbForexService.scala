@@ -19,6 +19,8 @@ package uk.gov.hmrc.forexrates.services
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.connectors.EcbForexConnector
 import uk.gov.hmrc.forexrates.logging.Logging
+import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.forexrates.scheduler.ScheduledService
 
 import java.time.{Clock, LocalDateTime}
@@ -27,7 +29,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait EcbForexService extends ScheduledService[Boolean] with Logging
 
-class EcbForexServiceImpl @Inject()(ecbForexConnector: EcbForexConnector,
+class EcbForexServiceImpl @Inject()(
+                                     ecbForexConnector: EcbForexConnector,
+                                     forexRepository: ForexRepository,
                                 appConfig: AppConfig
                                ) extends EcbForexService {
 
@@ -42,23 +46,28 @@ class EcbForexServiceImpl @Inject()(ecbForexConnector: EcbForexConnector,
     }
   }
 
-  def triggerFeedUpdate()(implicit ec: ExecutionContext) = {
+  def triggerFeedUpdate()(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
 
     val allCurrencyInserts = appConfig.currencies.map { currency =>
-      // TODO should we check if already have latest for the day?
-
-      ecbForexConnector.getFeed(currency).flatMap { feedForCurrency =>
-        val allInsertsOfExchangeRatesForCurrency = feedForCurrency.map { exchangeRate =>
-          // TODO push to repo
-          Future.successful(exchangeRate)
-        }
-
-        Future.sequence(allInsertsOfExchangeRatesForCurrency)
-      }
-
+      getRatesToSave(currency).flatMap(
+        rates => forexRepository.insert(rates)
+      )
     }
-
     Future.sequence(allCurrencyInserts).map(_.flatten)
+  }
+
+
+  private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
+    for{
+      retrievedFeed <- ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
+      savedRates <- forexRepository.get(retrievedFeed.head.date, retrievedFeed.last.date, retrievedFeed.head.baseCurrency, retrievedFeed.head.targetCurrency)
+    } yield{
+      val pairedFeeds = retrievedFeed.map(retrievedRate => (retrievedRate, savedRates.find(savedFeed => savedFeed.date == retrievedRate.date)))
+      pairedFeeds.filter(pair => pair._2.exists(_.value != pair._1.value)).foreach(
+        conflict => logger.error(s"Conflict found when retrieving rates. Retrieved: ${conflict._1} Previously saved: ${conflict._2.get}")
+      )
+        pairedFeeds.filter(pair => pair._2.isEmpty).map(_._1)
+    }
   }
 
 }
