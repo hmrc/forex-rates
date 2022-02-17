@@ -23,7 +23,6 @@ import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.forexrates.scheduler.ScheduledService
 
-import java.time.{Clock, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,14 +31,14 @@ trait EcbForexService extends ScheduledService[Boolean] with Logging
 class EcbForexServiceImpl @Inject()(
                                      ecbForexConnector: EcbForexConnector,
                                      forexRepository: ForexRepository,
-                                appConfig: AppConfig
-                               ) extends EcbForexService {
+                                     appConfig: AppConfig
+                                   ) extends EcbForexService {
 
 
   override val jobName: String = "RetrieveForexRatesJob"
 
   override def invoke(implicit ec: ExecutionContext): Future[Boolean] = {
-    for{
+    for {
       _ <- triggerFeedUpdate()
     } yield {
       true
@@ -56,7 +55,13 @@ class EcbForexServiceImpl @Inject()(
 
   private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
     ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
-      .flatMap(feeds => forexRepository.insertIfNotPresent(feeds))
+      .flatMap(feeds => if (feeds.nonEmpty) {
+        forexRepository.insertIfNotPresent(feeds)
+      } else {
+        logger.warn("No rates were retrieved from ECB")
+        Future.successful(Seq.empty)
+      }
+      )
   }
 
 }
