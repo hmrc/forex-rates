@@ -35,7 +35,6 @@ class EcbForexServiceSpec extends SpecBase with BeforeAndAfterEach {
     "save all of the retrieved rates if they weren't previously saved" in {
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
-      when(mockForexRepository.get(any(), any(), any(), any(), any())) thenReturn Future.successful(Seq.empty)
       when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
       service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRate1, exchangeRate2)
       verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRate1, exchangeRate2))
@@ -44,7 +43,6 @@ class EcbForexServiceSpec extends SpecBase with BeforeAndAfterEach {
     "save only the rates that were not previously saved" in {
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
-      when(mockForexRepository.get(any(), any(), any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate1))
       when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRate2))
       service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRate2)
       verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRate1, exchangeRate2))

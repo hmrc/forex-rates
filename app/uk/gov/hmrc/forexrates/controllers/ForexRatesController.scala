@@ -37,5 +37,13 @@ class ForexRatesController @Inject()(
       case None => NotFound
     }
   }
+
+  def getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String): Action[AnyContent] = Action.async {
+    for{
+      rates <- repository.get(dateFrom, dateTo, baseCurrency, targetCurrency)
+    } yield {
+      Ok(Json.toJson(rates))
+    }
+  }
 }
 

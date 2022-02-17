@@ -1,4 +1,4 @@
-package base
+package uk.gov.hmrc.forexrates.base
 
 import uk.gov.hmrc.forexrates.services.EcbForexService
 

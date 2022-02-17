@@ -58,7 +58,19 @@ class ForexRepository @Inject()(
       .headOption()
   }
 
-  def get(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String, session: ClientSession): Future[Seq[ExchangeRate]] = {
+  def get(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String): Future[Seq[ExchangeRate]] = {
+    collection
+      .find(
+        Filters.and(
+          Filters.gte("date", dateFrom),
+          Filters.lte("date", dateTo),
+          Filters.equal("baseCurrency", baseCurrency),
+          Filters.equal("targetCurrency", targetCurrency)
+        ))
+      .toFuture()
+  }
+
+  private def get(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String, session: ClientSession): Future[Seq[ExchangeRate]] = {
     collection
       .find(
         session,

@@ -77,10 +77,9 @@ class ForexRepositorySpec
 
   ".get(dateRange)" - {
 
+    "must return empty sequence when data within requested date range is not found" in {
 
-    "must return none when data within requested date range is not found" in {
-
-      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency, session).futureValue
+      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency).futureValue
 
       result mustBe Seq.empty
     }
@@ -91,7 +90,7 @@ class ForexRepositorySpec
 
       repository.insert(multipleExchangeRates, session)
 
-      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency, session).futureValue
+      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency).futureValue
 
       result mustBe multipleExchangeRates
     }
