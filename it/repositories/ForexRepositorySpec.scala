@@ -16,6 +16,7 @@
 
 package repositories
 
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -42,6 +43,8 @@ class ForexRepositorySpec
       mongoComponent = mongoComponent
     )
 
+  val session = mongoComponent.client.startSession().head().futureValue
+
   val requestDate: LocalDate = LocalDate.of(2022, 1, 22)
   val baseCurrency = "Test"
   val targetCurrency = "Test2"
@@ -50,12 +53,8 @@ class ForexRepositorySpec
   val dateFrom = LocalDate.of(2022, 1, 20)
   val dateTo = LocalDate.of(2022, 1, 22)
 
-  val exchangeRate: ExchangeRate = ExchangeRate(
-    date = requestDate,
-    baseCurrency = baseCurrency,
-    targetCurrency = targetCurrency,
-    value = rate
-  )
+  val exchangeRate1 = ExchangeRate(requestDate, baseCurrency, targetCurrency, rate)
+  val exchangeRate2 = exchangeRate1.copy(date = exchangeRate1.date.plusDays(1))
 
   ".get" - {
 
@@ -68,30 +67,31 @@ class ForexRepositorySpec
 
     "must return a valid ExchangeRate when data exists for requested date" in {
 
-      insert(exchangeRate).futureValue
+      insert(exchangeRate1).futureValue
 
       val result = repository.get(requestDate, baseCurrency, targetCurrency).futureValue
 
-      result mustBe Some(exchangeRate)
+      result mustBe Some(exchangeRate1)
     }
   }
 
   ".get(dateRange)" - {
 
+
     "must return none when data within requested date range is not found" in {
 
-      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency).futureValue
+      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency, session).futureValue
 
       result mustBe Seq.empty
     }
 
     "must return a Sequence of exchange rate data for requested date range" in {
 
-      val multipleExchangeRates = Seq(exchangeRate.copy(date = dateFrom), exchangeRate.copy(date = dateTo))
+      val multipleExchangeRates = Seq(exchangeRate1.copy(date = dateFrom), exchangeRate1.copy(date = dateTo))
 
-      repository.insert(multipleExchangeRates)
+      repository.insert(multipleExchangeRates, session)
 
-      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency).futureValue
+      val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency, session).futureValue
 
       result mustBe multipleExchangeRates
     }
@@ -101,18 +101,38 @@ class ForexRepositorySpec
 
     "must insert one forex rss data entry when data received from rss api" in {
 
-      val result = repository.insert(Seq(exchangeRate)).futureValue
+      val result = repository.insert(Seq(exchangeRate1), session).futureValue
 
-      result mustBe Seq(exchangeRate)
+      result mustBe Seq(exchangeRate1)
     }
 
     "must return None when insert forex rss data is unsuccessful" in {
 
-      val result1 = repository.insert(Seq(exchangeRate)).futureValue
-      val result2 = repository.insert(Seq(exchangeRate)).futureValue
+      val result1 = repository.insert(Seq(exchangeRate1), session).futureValue
+      val result2 = repository.insert(Seq(exchangeRate1), session).futureValue
 
-      result1 mustBe Seq(exchangeRate)
+      result1 mustBe Seq(exchangeRate1)
       result2 mustBe Seq.empty
+    }
+  }
+
+  ".insertIfNotPresent" - {
+
+    "must insert if data is not already present" in {
+
+      val result = repository.insertIfNotPresent(Seq(exchangeRate1, exchangeRate2)).futureValue
+
+      result mustBe Seq(exchangeRate1, exchangeRate2)
+
+    }
+
+    "must only save non-duplicated rate when there are conflicting rates present" in {
+
+      repository.collection.insertOne(exchangeRate1).head().futureValue
+
+      val result = repository.insertIfNotPresent(Seq(exchangeRate1, exchangeRate2)).futureValue
+
+      result mustBe Seq(exchangeRate2)
     }
   }
 }
