@@ -1,4 +1,4 @@
-package base
+package uk.gov.hmrc.forexrates.base
 
 import akka.actor.ActorSystem
 import play.api.Configuration
