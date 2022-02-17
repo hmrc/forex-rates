@@ -16,18 +16,20 @@
 
 package uk.gov.hmrc.forexrates.repositories
 
+import org.mongodb.scala.ClientSession
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
 import uk.gov.hmrc.forexrates.logging.Logging
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.transaction.{TransactionConfiguration, Transactions}
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ForexRepository @Inject()(
-                                 mongoComponent: MongoComponent,
+                                 val mongoComponent: MongoComponent,
                                )(implicit ec: ExecutionContext)
   extends PlayMongoRepository[ExchangeRate](
     collectionName = "exchangeRates",
@@ -41,8 +43,10 @@ class ForexRepository @Inject()(
           .unique(true)
       )
     )
-  )
+  ) with Transactions
     with Logging {
+
+  private implicit val tc: TransactionConfiguration = TransactionConfiguration.strict
 
   def get(date: LocalDate, baseCurrency: String, targetCurrency: String): Future[Option[ExchangeRate]] = {
     collection
@@ -54,9 +58,11 @@ class ForexRepository @Inject()(
       .headOption()
   }
 
-  def get(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String): Future[Seq[ExchangeRate]] = {
+  def get(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String, session: ClientSession): Future[Seq[ExchangeRate]] = {
     collection
-      .find(Filters.and(
+      .find(
+        session,
+        Filters.and(
         Filters.gte("date", dateFrom),
         Filters.lte("date", dateTo),
         Filters.equal("baseCurrency", baseCurrency),
@@ -65,9 +71,9 @@ class ForexRepository @Inject()(
       .toFuture()
   }
 
-  def insert(exchangeRate: Seq[ExchangeRate]): Future[Seq[ExchangeRate]] = {
+  def insert(exchangeRate: Seq[ExchangeRate], session: ClientSession): Future[Seq[ExchangeRate]] = {
     collection
-      .insertMany(exchangeRate)
+      .insertMany(session, exchangeRate)
       .toFuture()
       .map(_ => exchangeRate)
       .recover {
@@ -75,6 +81,27 @@ class ForexRepository @Inject()(
           logger.info(s"There was an error while inserting exchange rate data ${e.getMessage}", e)
           Seq.empty
       }
+  }
+
+  def insertIfNotPresent(ratesFromEcb: Seq[ExchangeRate]) = {
+    for{
+      result <- withSessionAndTransaction{
+        session =>
+          val ratesToSave = for {
+            savedRates <- get(ratesFromEcb.head.date, ratesFromEcb.last.date, ratesFromEcb.head.baseCurrency, ratesFromEcb.head.targetCurrency, session)
+          } yield {
+            val pairedFeeds = ratesFromEcb.map(retrievedRate => (retrievedRate, savedRates.find(savedFeed => savedFeed.date == retrievedRate.date)))
+
+            pairedFeeds.filter(pair => pair._2.exists(_.value != pair._1.value)).foreach(
+              conflict => logger.error(s"Conflict found when retrieving rates. Retrieved: ${conflict._1} Previously saved: ${conflict._2.get}")
+            )
+            pairedFeeds.filter(pair => pair._2.isEmpty).map(_._1)
+          }
+          ratesToSave.flatMap(
+            rates => insert(rates, session)
+          )
+      }
+    } yield result
   }
 }
 
