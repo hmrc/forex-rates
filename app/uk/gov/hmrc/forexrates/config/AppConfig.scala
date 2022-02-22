@@ -34,7 +34,7 @@ class AppConfig @Inject()
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
-  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex")
+  val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex") + "/" + config.get[String]("microservice.services.ecb-forex.basePath")
 
   val currencies: Seq[String] = config.get[Seq[String]]("features.forex-scheduler.currencies")
 }
