@@ -133,5 +133,15 @@ class ForexRepositorySpec
 
       result mustBe Seq(exchangeRate2)
     }
+
+    "must not try to save when there is nothing new" in {
+
+      repository.collection.insertOne(exchangeRate1).head().futureValue
+      repository.collection.insertOne(exchangeRate2).head().futureValue
+
+      val result = repository.insertIfNotPresent(Seq(exchangeRate1, exchangeRate2)).futureValue
+
+      result mustBe Seq.empty
+    }
   }
 }

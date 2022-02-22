@@ -95,7 +95,7 @@ class ForexRepository @Inject()(
       }
   }
 
-  def insertIfNotPresent(ratesFromEcb: Seq[ExchangeRate]) = {
+  def insertIfNotPresent(ratesFromEcb: Seq[ExchangeRate]): Future[Seq[ExchangeRate]] = {
     for{
       result <- withSessionAndTransaction{
         session =>
@@ -104,14 +104,21 @@ class ForexRepository @Inject()(
           } yield {
             val pairedFeeds = ratesFromEcb.map(retrievedRate => (retrievedRate, savedRates.find(savedFeed => savedFeed.date == retrievedRate.date)))
 
-            pairedFeeds.filter(pair => pair._2.exists(_.value != pair._1.value)).foreach(
+            pairedFeeds.filter {
+              case (rateFromEcb, savedRate) => savedRate.exists(_.value != rateFromEcb.value)
+            }.foreach(
               conflict => logger.error(s"Conflict found when retrieving rates. Retrieved: ${conflict._1} Previously saved: ${conflict._2.get}")
             )
-            pairedFeeds.filter(pair => pair._2.isEmpty).map(_._1)
+            pairedFeeds.filter{
+              case (_, savedRate) => savedRate.isEmpty
+            }.map(_._1)
           }
-          ratesToSave.flatMap(
-            rates => insert(rates, session)
-          )
+          ratesToSave.flatMap {
+            case rates if rates.nonEmpty =>
+              insert(rates, session)
+            case rates =>
+              Future.successful(rates)
+          }
       }
     } yield result
   }
