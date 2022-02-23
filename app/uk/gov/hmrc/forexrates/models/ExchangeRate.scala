@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.forexrates.models
 
-import play.api.libs.json.{OFormat, OWrites, Reads, __}
+import play.api.libs.json.{__, Json, OFormat, OWrites, Reads}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.LocalDate
@@ -49,6 +49,9 @@ object ExchangeRate {
       ) (unlift(ExchangeRate.unapply))
   }
 
-implicit val format: OFormat[ExchangeRate] = OFormat(reads, writes)
+  implicit val format: OFormat[ExchangeRate] = OFormat(reads, writes)
+
+  val exchangeRateFormat: OFormat[ExchangeRate] = Json.format[ExchangeRate]
+  val exchangeRateSeqFormat: OFormat[Seq[ExchangeRate]] = Json.format[Seq[ExchangeRate]]
 
 }
