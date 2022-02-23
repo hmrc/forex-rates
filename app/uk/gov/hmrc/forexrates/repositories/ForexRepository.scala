@@ -18,6 +18,8 @@ package uk.gov.hmrc.forexrates.repositories
 
 import org.mongodb.scala.ClientSession
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
+import uk.gov.hmrc.forexrates.formats.ExchangeRateMongoFormatter
+import uk.gov.hmrc.forexrates.formats.ExchangeRateMongoFormatter._
 import uk.gov.hmrc.forexrates.logging.Logging
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.mongo.MongoComponent
@@ -34,7 +36,7 @@ class ForexRepository @Inject()(
   extends PlayMongoRepository[ExchangeRate](
     collectionName = "exchangeRates",
     mongoComponent = mongoComponent,
-    domainFormat = ExchangeRate.format,
+    domainFormat = ExchangeRateMongoFormatter.format,
     indexes = Seq(
       IndexModel(
         Indexes.ascending("date", "baseCurrency", "targetCurrency"),

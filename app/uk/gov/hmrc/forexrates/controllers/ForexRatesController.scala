@@ -18,13 +18,14 @@ package uk.gov.hmrc.forexrates.controllers
 
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
+
+import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 
 class ForexRatesController @Inject()(
@@ -34,7 +35,7 @@ class ForexRatesController @Inject()(
 
   def get(date: LocalDate, baseCurrency: String, targetCurrency: String): Action[AnyContent] = Action.async {
     repository.get(date, baseCurrency, targetCurrency).map {
-      case Some(exchangeRate) => Ok(Json.toJson(exchangeRate)(ExchangeRate.exchangeRateFormat))
+      case Some(exchangeRate) => Ok(Json.toJson(exchangeRate))
       case None => NotFound
     }
   }
@@ -43,7 +44,7 @@ class ForexRatesController @Inject()(
     for{
       rates <- repository.get(dateFrom, dateTo, baseCurrency, targetCurrency)
     } yield {
-      Ok(Json.toJson(rates)(ExchangeRate.exchangeRateSeqFormat))
+      Ok(Json.toJson(rates))
     }
   }
 }
