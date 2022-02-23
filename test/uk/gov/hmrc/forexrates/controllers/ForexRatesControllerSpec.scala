@@ -1,14 +1,14 @@
 package uk.gov.hmrc.forexrates.controllers
 
-import uk.gov.hmrc.forexrates.base.SpecBase
+import org.mockito.Mockito
 import org.mockito.MockitoSugar.when
-import org.scalatest.OptionValues.convertOptionToValuable
-import org.scalatest.concurrent.IntegrationPatience
+import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.libs.json.{JsArray, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.forexrates.base.SpecBase
 import uk.gov.hmrc.forexrates.connectors.WireMockHelper
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
@@ -16,21 +16,38 @@ import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class ForexRatesControllerSpec extends SpecBase with WireMockHelper with IntegrationPatience {
+class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
-  val mockRepository = mock[ForexRepository]
+  private val mockRepository = mock[ForexRepository]
 
-  val requestDate: LocalDate = LocalDate.of(2022, 1, 22)
-  val baseCurrency = "Test"
-  val targetCurrency = "Test2"
-  val rate = BigDecimal(500)
+  private val requestDate = LocalDate.of(2022, 1, 22)
+  private val baseCurrency = "Test"
+  private val targetCurrency = "Test2"
+  private val rate = BigDecimal(500)
 
-  val exchangeRate: ExchangeRate = ExchangeRate(
+  private val exchangeRate = ExchangeRate(
     date = requestDate,
     baseCurrency = baseCurrency,
     targetCurrency = targetCurrency,
     value = rate
   )
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockRepository)
+  }
+
+  private val exchangeRateJson =
+    s"""
+      |{
+      |"date": "${requestDate.toString}",
+      |"baseCurrency": "$baseCurrency",
+      |"targetCurrency": "$targetCurrency",
+      |"value": $rate
+      |}
+      |""".stripMargin
+
+  private val exchangeRateSeqJson = s"[$exchangeRateJson]"
 
   ".get" - {
 
@@ -50,7 +67,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
         val result = route(app, request).value
 
         status(result) mustEqual OK
-        contentAsJson(result) mustEqual Json.toJson(exchangeRate)
+        contentAsJson(result) mustEqual Json.parse(exchangeRateJson)
       }
     }
 
@@ -74,7 +91,8 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
 
   ".get date range" - {
     val dateTo = requestDate.plusDays(5)
-    val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+
+    lazy val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
 
     "must return forex rates when data is found" in {
 
@@ -90,7 +108,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
         val result = route(app, request).value
 
         status(result) mustEqual OK
-        contentAsJson(result) mustEqual Json.toJson(Seq(exchangeRate))
+        contentAsJson(result) mustEqual Json.parse(exchangeRateSeqJson)
       }
     }
 

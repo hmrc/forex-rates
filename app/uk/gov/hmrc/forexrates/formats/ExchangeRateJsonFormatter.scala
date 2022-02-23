@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.forexrates.formats
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 
 object ExchangeRateJsonFormatter {
 
-  implicit val exchangeRateFormat: OFormat[ExchangeRate] = Json.format[ExchangeRate]
+  implicit val exchangeRateFormat: Format[ExchangeRate] = Json.format[ExchangeRate]
 
 }

@@ -32,7 +32,7 @@ package object Binders extends Logging {
         LocalDate.parse(value, Format.dateTimeFormatter)
       } match {
         case Success(value) => Right(value)
-        case Failure(_) => Left("Invalid Period")
+        case Failure(_) => Left("Invalid date")
       }
     }
 

@@ -24,7 +24,6 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
-
 import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 
