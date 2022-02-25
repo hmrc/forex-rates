@@ -23,7 +23,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 
@@ -40,10 +40,14 @@ class ForexRatesController @Inject()(
   }
 
   def getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String): Action[AnyContent] = Action.async {
-    for{
-      rates <- repository.get(dateFrom, dateTo, baseCurrency, targetCurrency)
-    } yield {
-      Ok(Json.toJson(rates))
+    if(dateTo.isBefore(dateFrom)) {
+      Future.successful(BadRequest(Json.toJson("DateTo cannot be before DateFrom")))
+    } else {
+      for{
+        rates <- repository.get(dateFrom, dateTo, baseCurrency, targetCurrency)
+      } yield {
+        Ok(Json.toJson(rates))
+      }
     }
   }
 }
