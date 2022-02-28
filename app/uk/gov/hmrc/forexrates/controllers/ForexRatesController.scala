@@ -23,7 +23,8 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 
 class ForexRatesController @Inject()(
@@ -47,21 +48,29 @@ class ForexRatesController @Inject()(
   }
 
   def getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, targetCurrency: String): Action[AnyContent] = Action.async {
-    for{
-      rates <- repository.get(dateFrom, dateTo, EURO, targetCurrency)
-    } yield {
-      Ok(Json.toJson(rates))
+    if(dateTo.isBefore(dateFrom)) {
+      Future.successful(BadRequest(Json.toJson("DateTo cannot be before DateFrom")))
+    } else {
+      for {
+        rates <- repository.get(dateFrom, dateTo, EURO, targetCurrency)
+      } yield {
+        Ok(Json.toJson(rates))
+      }
     }
   }
 
   def getInverseRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String): Action[AnyContent] = Action.async {
-    for{
-      rates <- repository.get(dateFrom, dateTo, EURO, baseCurrency)
-    } yield {
-      val inverseRates = rates.map(
-        exchangeRate => exchangeRate.copy(baseCurrency = exchangeRate.targetCurrency, targetCurrency = exchangeRate.baseCurrency, value = 1/exchangeRate.value)
-      )
-      Ok(Json.toJson(inverseRates))
+    if(dateTo.isBefore(dateFrom)) {
+      Future.successful(BadRequest(Json.toJson("DateTo cannot be before DateFrom")))
+    } else {
+      for {
+        rates <- repository.get(dateFrom, dateTo, EURO, baseCurrency)
+      } yield {
+        val inverseRates = rates.map(
+          exchangeRate => exchangeRate.copy(baseCurrency = exchangeRate.targetCurrency, targetCurrency = exchangeRate.baseCurrency, value = 1 / exchangeRate.value)
+        )
+        Ok(Json.toJson(inverseRates))
+      }
     }
   }
 }

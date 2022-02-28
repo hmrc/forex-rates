@@ -31,14 +31,15 @@ import java.time.LocalDate
 
 class EcbForexConnectorSpec extends SpecBase with WireMockHelper with IntegrationPatience {
 
-  private val url = "/rss/fxref-gbp.html"
+  private val url = "/ecb-forex-rss-stub/rss/fxref-gbp.html"
 
   private def application: Application = {
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.ecb-forex.protocol" -> "http",
         "microservice.services.ecb-forex.host" -> "127.0.0.1",
-        "microservice.services.ecb-forex.port" -> server.port
+        "microservice.services.ecb-forex.port" -> server.port,
+        "microservice.services.ecb-forex.basePath" -> "ecb-forex-rss-stub"
       )
       .build()
   }

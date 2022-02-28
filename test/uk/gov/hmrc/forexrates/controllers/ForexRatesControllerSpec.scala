@@ -2,9 +2,10 @@ package uk.gov.hmrc.forexrates.controllers
 
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.forexrates.base.SpecBase
+import org.mockito.Mockito
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.MockitoSugar.when
-import org.scalatest.OptionValues.convertOptionToValuable
-import org.scalatest.concurrent.IntegrationPatience
+import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.libs.json.{JsArray, Json}
@@ -17,15 +18,15 @@ import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class ForexRatesControllerSpec extends SpecBase with WireMockHelper with IntegrationPatience {
+class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
-  val mockRepository = mock[ForexRepository]
+  private val mockRepository = mock[ForexRepository]
 
-  val requestDate: LocalDate = LocalDate.of(2022, 1, 22)
-  val targetCurrency = "Test2"
-  val rate = BigDecimal(500)
+  private val requestDate = LocalDate.of(2022, 1, 22)
+  private val targetCurrency = "Test2"
+  private val rate = BigDecimal(500)
 
-  val exchangeRate: ExchangeRate = ExchangeRate(
+  private val exchangeRate = ExchangeRate(
     date = requestDate,
     baseCurrency = "EUR",
     targetCurrency = targetCurrency,
@@ -38,6 +39,23 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
     targetCurrency = "EUR",
     value = 1/rate
   )
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockRepository)
+  }
+
+  private val exchangeRateJson =
+    s"""
+       |{
+       |"date": "${requestDate.toString}",
+       |"baseCurrency": "$baseCurrency",
+       |"targetCurrency": "$targetCurrency",
+       |"value": $rate
+       |}
+       |""".stripMargin
+
+  private val exchangeRateSeqJson = s"[$exchangeRateJson]"
 
   ".get" - {
 
@@ -57,7 +75,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
         val result = route(app, request).value
 
         status(result) mustEqual OK
-        contentAsJson(result) mustEqual Json.toJson(exchangeRate)
+        contentAsJson(result) mustEqual Json.parse(exchangeRateJson)
       }
     }
 
@@ -119,7 +137,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
     }
   }
 
-  ".get date range" - {
+  ".getRatesInDateRange" - {
     val dateTo = requestDate.plusDays(5)
     val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, targetCurrency).url)
 
@@ -137,7 +155,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
         val result = route(app, request).value
 
         status(result) mustEqual OK
-        contentAsJson(result) mustEqual Json.toJson(Seq(exchangeRate))
+        contentAsJson(result) mustEqual Json.parse(exchangeRateSeqJson)
       }
     }
 
@@ -233,6 +251,26 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
 
         whenReady(result.failed) { exp => exp mustBe a[Exception] }
 
+      }
+    }
+
+    "must return BadRequest when dateTo is before dateFrom" in {
+
+      val dateTo = requestDate.minusDays(5)
+      val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson("DateTo cannot be before DateFrom")
+        verifyNoInteractions(mockRepository)
       }
     }
   }

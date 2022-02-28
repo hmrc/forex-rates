@@ -17,33 +17,27 @@
 package uk.gov.hmrc.forexrates.models
 
 import play.api.mvc.PathBindable
+import uk.gov.hmrc.forexrates.formats.Format
 import uk.gov.hmrc.forexrates.logging.Logging
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneId}
-import java.util.Locale
+import java.time.LocalDate
 import scala.util.{Failure, Success, Try}
 
 package object Binders extends Logging {
 
   implicit val pathBindable: PathBindable[LocalDate] = new PathBindable[LocalDate] {
 
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      .withLocale(Locale.UK)
-      .withZone(ZoneId.systemDefault())
-
     override def bind(key: String, value: String): Either[String, LocalDate] = {
       Try {
-        LocalDate.parse(value, dateTimeFormatter)
+        LocalDate.parse(value, Format.dateTimeFormatter)
       } match {
         case Success(value) => Right(value)
-        case Failure(_) => Left("Invalid Period")
+        case Failure(_) => Left("Invalid date")
       }
-
     }
 
     override def unbind(key: String, value: LocalDate): String =
-      dateTimeFormatter.format(value)
+      Format.dateTimeFormatter.format(value)
   }
 
 }
