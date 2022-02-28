@@ -17,6 +17,7 @@ import uk.gov.hmrc.forexrates.repositories.ForexRepository
 
 import java.time.LocalDate
 import scala.concurrent.Future
+import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
@@ -49,7 +50,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
     s"""
        |{
        |"date": "${requestDate.toString}",
-       |"baseCurrency": "$baseCurrency",
+       |"baseCurrency": "EUR",
        |"targetCurrency": "$targetCurrency",
        |"value": $rate
        |}
@@ -194,6 +195,26 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
       }
     }
+
+    "must return BadRequest when dateTo is before dateFrom" in {
+
+      val dateTo = requestDate.minusDays(5)
+      val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, targetCurrency).url)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson("DateTo cannot be before DateFrom")
+        verifyNoInteractions(mockRepository)
+      }
+    }
   }
 
   ".getInverseDateRange" - {
@@ -257,7 +278,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
     "must return BadRequest when dateTo is before dateFrom" in {
 
       val dateTo = requestDate.minusDays(5)
-      val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+      val request = FakeRequest(GET, routes.ForexRatesController.getInverseRatesInDateRange(requestDate, dateTo, targetCurrency).url)
 
       val app =
         applicationBuilder
