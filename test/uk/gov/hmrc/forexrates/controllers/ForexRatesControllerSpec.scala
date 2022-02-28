@@ -1,5 +1,6 @@
 package uk.gov.hmrc.forexrates.controllers
 
+import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.forexrates.base.SpecBase
 import org.mockito.MockitoSugar.when
 import org.scalatest.OptionValues.convertOptionToValuable
@@ -21,24 +22,30 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
   val mockRepository = mock[ForexRepository]
 
   val requestDate: LocalDate = LocalDate.of(2022, 1, 22)
-  val baseCurrency = "Test"
   val targetCurrency = "Test2"
   val rate = BigDecimal(500)
 
   val exchangeRate: ExchangeRate = ExchangeRate(
     date = requestDate,
-    baseCurrency = baseCurrency,
+    baseCurrency = "EUR",
     targetCurrency = targetCurrency,
     value = rate
   )
 
+  val inverseExchangeRate = ExchangeRate(
+    date = requestDate,
+    baseCurrency = targetCurrency,
+    targetCurrency = "EUR",
+    value = 1/rate
+  )
+
   ".get" - {
 
-    lazy val request = FakeRequest(GET, routes.ForexRatesController.get(requestDate, baseCurrency, targetCurrency).url)
+    lazy val request = FakeRequest(GET, routes.ForexRatesController.get(requestDate, targetCurrency).url)
 
     "must return forex rates when data is found" in {
 
-      when(mockRepository.get(requestDate, baseCurrency, targetCurrency)) thenReturn Future.successful(Some(exchangeRate))
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(Some(exchangeRate))
 
       val app =
         applicationBuilder
@@ -56,7 +63,47 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
 
     "must return Not Found when no data is found" in {
 
-      when(mockRepository.get(requestDate, baseCurrency, targetCurrency)) thenReturn Future.successful(None)
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(None)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual NOT_FOUND
+      }
+    }
+  }
+
+  ".getInverse" - {
+
+    lazy val request = FakeRequest(GET, routes.ForexRatesController.getInverse(requestDate, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(Some(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.toJson(inverseExchangeRate)
+      }
+    }
+
+    "must return Not Found when no data is found" in {
+
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(None)
 
       val app =
         applicationBuilder
@@ -74,11 +121,11 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
 
   ".get date range" - {
     val dateTo = requestDate.plusDays(5)
-    val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+    val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, targetCurrency).url)
 
     "must return forex rates when data is found" in {
 
-      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.successful(Seq(exchangeRate))
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate))
 
       val app =
         applicationBuilder
@@ -96,7 +143,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
 
     "must return empty sequence when data is not found" in {
 
-      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.successful(Seq.empty)
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq.empty)
 
       val app =
         applicationBuilder
@@ -114,7 +161,66 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with Integra
 
     "must throw exception when the call to the repository fails" in {
 
-      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.failed(new Exception("Error connecting to the db"))
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.failed(new Exception("Error connecting to the db"))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        whenReady(result.failed) { exp => exp mustBe a[Exception] }
+
+      }
+    }
+  }
+
+  ".getInverseDateRange" - {
+    val dateTo = requestDate.plusDays(5)
+    val request = FakeRequest(GET, routes.ForexRatesController.getInverseRatesInDateRange(requestDate, dateTo, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.toJson(Seq(inverseExchangeRate))
+      }
+    }
+
+    "must return empty sequence when data is not found" in {
+
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq.empty)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual JsArray()
+      }
+    }
+
+    "must throw exception when the call to the repository fails" in {
+
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.failed(new Exception("Error connecting to the db"))
 
       val app =
         applicationBuilder
