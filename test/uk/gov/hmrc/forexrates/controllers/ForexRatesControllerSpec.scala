@@ -1,6 +1,7 @@
 package uk.gov.hmrc.forexrates.controllers
 
 import org.mockito.Mockito
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.MockitoSugar.when
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status.OK
@@ -39,13 +40,13 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
   private val exchangeRateJson =
     s"""
-      |{
-      |"date": "${requestDate.toString}",
-      |"baseCurrency": "$baseCurrency",
-      |"targetCurrency": "$targetCurrency",
-      |"value": $rate
-      |}
-      |""".stripMargin
+       |{
+       |"date": "${requestDate.toString}",
+       |"baseCurrency": "$baseCurrency",
+       |"targetCurrency": "$targetCurrency",
+       |"value": $rate
+       |}
+       |""".stripMargin
 
   private val exchangeRateSeqJson = s"[$exchangeRateJson]"
 
@@ -89,7 +90,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
     }
   }
 
-  ".get date range" - {
+  ".getRatesInDateRange" - {
     val dateTo = requestDate.plusDays(5)
 
     lazy val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
@@ -145,6 +146,26 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
         whenReady(result.failed) { exp => exp mustBe a[Exception] }
 
+      }
+    }
+
+    "must return BadRequest when dateTo is before dateFrom" in {
+
+      val dateTo = requestDate.minusDays(5)
+      val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson("DateTo cannot be before DateFrom")
+        verifyNoInteractions(mockRepository)
       }
     }
   }
