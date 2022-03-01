@@ -32,21 +32,44 @@ class ForexRatesController @Inject()(
                                       repository: ForexRepository
                                     )(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def get(date: LocalDate, baseCurrency: String, targetCurrency: String): Action[AnyContent] = Action.async {
-    repository.get(date, baseCurrency, targetCurrency).map {
+  private val EURO = "EUR"
+  def get(date: LocalDate, targetCurrency: String): Action[AnyContent] = Action.async {
+    repository.get(date, EURO, targetCurrency).map {
       case Some(exchangeRate) => Ok(Json.toJson(exchangeRate))
       case None => NotFound
     }
   }
 
-  def getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String): Action[AnyContent] = Action.async {
+  def getInverse(date: LocalDate, baseCurrency: String): Action[AnyContent] = Action.async {
+    repository.get(date, EURO, baseCurrency).map {
+      case Some(exchangeRate) => Ok(Json.toJson(exchangeRate.copy(baseCurrency = exchangeRate.targetCurrency, targetCurrency = exchangeRate.baseCurrency, value = 1/exchangeRate.value)))
+      case None => NotFound
+    }
+  }
+
+  def getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, targetCurrency: String): Action[AnyContent] = Action.async {
     if(dateTo.isBefore(dateFrom)) {
       Future.successful(BadRequest(Json.toJson("DateTo cannot be before DateFrom")))
     } else {
-      for{
-        rates <- repository.get(dateFrom, dateTo, baseCurrency, targetCurrency)
+      for {
+        rates <- repository.get(dateFrom, dateTo, EURO, targetCurrency)
       } yield {
         Ok(Json.toJson(rates))
+      }
+    }
+  }
+
+  def getInverseRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String): Action[AnyContent] = Action.async {
+    if(dateTo.isBefore(dateFrom)) {
+      Future.successful(BadRequest(Json.toJson("DateTo cannot be before DateFrom")))
+    } else {
+      for {
+        rates <- repository.get(dateFrom, dateTo, EURO, baseCurrency)
+      } yield {
+        val inverseRates = rates.map(
+          exchangeRate => exchangeRate.copy(baseCurrency = exchangeRate.targetCurrency, targetCurrency = exchangeRate.baseCurrency, value = 1 / exchangeRate.value)
+        )
+        Ok(Json.toJson(inverseRates))
       }
     }
   }

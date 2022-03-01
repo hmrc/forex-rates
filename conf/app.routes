@@ -1,5 +1,9 @@
 # microservice specific routes
 
-GET        /rates/:date/:baseCurrency/:targetCurrency                   uk.gov.hmrc.forexrates.controllers.ForexRatesController.get(date: LocalDate, baseCurrency: String, targetCurrency: String)
+GET        /rates/:date/EUR/:targetCurrency                   uk.gov.hmrc.forexrates.controllers.ForexRatesController.get(date: LocalDate, targetCurrency: String)
 
-GET        /rates/:dateFrom/:dateTo/:baseCurrency/:targetCurrency       uk.gov.hmrc.forexrates.controllers.ForexRatesController.getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String, targetCurrency: String)
+GET        /rates/:dateFrom/:dateTo/EUR/:targetCurrency       uk.gov.hmrc.forexrates.controllers.ForexRatesController.getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, targetCurrency: String)
+
+GET        /rates/:date/:baseCurrency/EUR                   uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverse(date: LocalDate, baseCurrency: String)
+
+GET        /rates/:dateFrom/:dateTo/:baseCurrency/EUR       uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverseRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String)

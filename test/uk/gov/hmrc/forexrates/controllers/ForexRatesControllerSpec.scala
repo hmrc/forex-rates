@@ -1,5 +1,7 @@
 package uk.gov.hmrc.forexrates.controllers
 
+import org.mockito.ArgumentMatchers.any
+import uk.gov.hmrc.forexrates.base.SpecBase
 import org.mockito.Mockito
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.MockitoSugar.when
@@ -9,28 +11,34 @@ import play.api.inject.bind
 import play.api.libs.json.{JsArray, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.forexrates.base.SpecBase
 import uk.gov.hmrc.forexrates.connectors.WireMockHelper
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 
 import java.time.LocalDate
 import scala.concurrent.Future
+import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
   private val mockRepository = mock[ForexRepository]
 
   private val requestDate = LocalDate.of(2022, 1, 22)
-  private val baseCurrency = "Test"
   private val targetCurrency = "Test2"
   private val rate = BigDecimal(500)
 
   private val exchangeRate = ExchangeRate(
     date = requestDate,
-    baseCurrency = baseCurrency,
+    baseCurrency = "EUR",
     targetCurrency = targetCurrency,
     value = rate
+  )
+
+  val inverseExchangeRate = ExchangeRate(
+    date = requestDate,
+    baseCurrency = targetCurrency,
+    targetCurrency = "EUR",
+    value = 1/rate
   )
 
   override def beforeEach(): Unit = {
@@ -42,7 +50,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
     s"""
        |{
        |"date": "${requestDate.toString}",
-       |"baseCurrency": "$baseCurrency",
+       |"baseCurrency": "EUR",
        |"targetCurrency": "$targetCurrency",
        |"value": $rate
        |}
@@ -52,11 +60,11 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
   ".get" - {
 
-    lazy val request = FakeRequest(GET, routes.ForexRatesController.get(requestDate, baseCurrency, targetCurrency).url)
+    lazy val request = FakeRequest(GET, routes.ForexRatesController.get(requestDate, targetCurrency).url)
 
     "must return forex rates when data is found" in {
 
-      when(mockRepository.get(requestDate, baseCurrency, targetCurrency)) thenReturn Future.successful(Some(exchangeRate))
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(Some(exchangeRate))
 
       val app =
         applicationBuilder
@@ -74,7 +82,47 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
     "must return Not Found when no data is found" in {
 
-      when(mockRepository.get(requestDate, baseCurrency, targetCurrency)) thenReturn Future.successful(None)
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(None)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual NOT_FOUND
+      }
+    }
+  }
+
+  ".getInverse" - {
+
+    lazy val request = FakeRequest(GET, routes.ForexRatesController.getInverse(requestDate, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(Some(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.toJson(inverseExchangeRate)
+      }
+    }
+
+    "must return Not Found when no data is found" in {
+
+      when(mockRepository.get(any(), any(), any())) thenReturn Future.successful(None)
 
       val app =
         applicationBuilder
@@ -92,12 +140,11 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
   ".getRatesInDateRange" - {
     val dateTo = requestDate.plusDays(5)
-
-    lazy val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+    val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, targetCurrency).url)
 
     "must return forex rates when data is found" in {
 
-      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.successful(Seq(exchangeRate))
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate))
 
       val app =
         applicationBuilder
@@ -115,7 +162,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
     "must return empty sequence when data is not found" in {
 
-      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.successful(Seq.empty)
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq.empty)
 
       val app =
         applicationBuilder
@@ -133,7 +180,7 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
 
     "must throw exception when the call to the repository fails" in {
 
-      when(mockRepository.get(requestDate, dateTo, baseCurrency, targetCurrency)) thenReturn Future.failed(new Exception("Error connecting to the db"))
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.failed(new Exception("Error connecting to the db"))
 
       val app =
         applicationBuilder
@@ -152,7 +199,86 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
     "must return BadRequest when dateTo is before dateFrom" in {
 
       val dateTo = requestDate.minusDays(5)
-      val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, baseCurrency, targetCurrency).url)
+      val request = FakeRequest(GET, routes.ForexRatesController.getRatesInDateRange(requestDate, dateTo, targetCurrency).url)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson("DateTo cannot be before DateFrom")
+        verifyNoInteractions(mockRepository)
+      }
+    }
+  }
+
+  ".getInverseDateRange" - {
+    val dateTo = requestDate.plusDays(5)
+    val request = FakeRequest(GET, routes.ForexRatesController.getInverseRatesInDateRange(requestDate, dateTo, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.toJson(Seq(inverseExchangeRate))
+      }
+    }
+
+    "must return empty sequence when data is not found" in {
+
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.successful(Seq.empty)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual JsArray()
+      }
+    }
+
+    "must throw exception when the call to the repository fails" in {
+
+      when(mockRepository.get(any(), any(), any(), any())) thenReturn Future.failed(new Exception("Error connecting to the db"))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        whenReady(result.failed) { exp => exp mustBe a[Exception] }
+
+      }
+    }
+
+    "must return BadRequest when dateTo is before dateFrom" in {
+
+      val dateTo = requestDate.minusDays(5)
+      val request = FakeRequest(GET, routes.ForexRatesController.getInverseRatesInDateRange(requestDate, dateTo, targetCurrency).url)
 
       val app =
         applicationBuilder
