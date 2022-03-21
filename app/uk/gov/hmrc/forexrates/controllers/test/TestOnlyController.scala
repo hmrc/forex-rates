@@ -42,9 +42,6 @@ class TestOnlyController @Inject()(
         logger.warn("Did not retrieve rates from stub")
         NotFound
       }
-
-
     }
   }
-
 }

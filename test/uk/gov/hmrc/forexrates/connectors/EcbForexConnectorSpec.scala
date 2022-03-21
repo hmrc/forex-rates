@@ -23,6 +23,7 @@ import org.scalatest.concurrent.IntegrationPatience
 import org.xml.sax.SAXParseException
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND}
+import play.api.libs.json.Json
 import play.api.test.Helpers.running
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.testutils.EcbForexData
@@ -47,6 +48,7 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
   val errorStatuses = Seq(BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR)
 
   "EcbForexConnector get" - {
+
     "return feed items" in {
       val app = application
 
@@ -72,7 +74,8 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
       }
     }
 
-    "throw exception xml is invalid" in {
+    "return empty sequence and log the error when xml received from ecb cannot be parsed" in {
+
       val app = application
 
       server.stubFor(
@@ -85,9 +88,9 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
 
       running(app) {
         val connector = app.injector.instanceOf[EcbForexConnector]
-        val result = connector.getFeed("GBP")
+        val result = connector.getFeed("GBP").futureValue
 
-        whenReady(result.failed) { exp => exp mustBe a[SAXParseException] }
+        result mustBe Seq.empty
       }
     }
 

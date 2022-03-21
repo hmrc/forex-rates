@@ -23,6 +23,7 @@ import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
+import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, Node, XML}
 
 object EcbForexHttpParser extends Logging {
@@ -33,8 +34,18 @@ object EcbForexHttpParser extends Logging {
     override def read(method: String, url: String, response: HttpResponse): EcbForexResponse =
       response.status match {
         case OK =>
-          val loadedXml = XML.loadString(response.body)
-          xmlToExchangeRate(loadedXml)
+          Try {
+            val loadedXml = XML.loadString(response.body)
+            xmlToExchangeRate(loadedXml)
+          } match {
+            case Success(value) => value
+            case Failure(exception) => {
+              logger.error(s"Error parsing response from ECB $url, received status $OK, body of response was: ${response.body}")
+              logger.error(s"Error was: ${exception.getLocalizedMessage}")
+              Seq.empty
+            }
+          }
+
         case status =>
           logger.error(s"Error response from ECB $url, received status $status, body of response was: ${response.body}")
           Seq.empty
