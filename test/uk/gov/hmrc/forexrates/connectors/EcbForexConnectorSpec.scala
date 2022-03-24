@@ -20,6 +20,8 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.forexrates.base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.IntegrationPatience
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
+import org.scalatest.time.{Seconds, Span}
 import org.xml.sax.SAXParseException
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND}
@@ -111,6 +113,25 @@ class EcbForexConnectorSpec extends SpecBase with WireMockHelper with Integratio
           val result = connector.getFeed("GBP").futureValue
 
           result mustBe Seq.empty
+        }
+      }
+    }
+
+    "return empty sequence and log the error when Http Exception received from ecb" in {
+      val app = application
+
+      server.stubFor(
+        get(urlEqualTo(url))
+          .willReturn(aResponse()
+            .withStatus(504)
+            .withFixedDelay(21000))
+      )
+
+      running(app) {
+        val connector = app.injector.instanceOf[EcbForexConnector]
+
+        whenReady(connector.getFeed("GBP"), Timeout(Span(30, Seconds))) { exp =>
+          exp mustBe Seq.empty
         }
       }
     }
