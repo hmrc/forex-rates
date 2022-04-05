@@ -36,10 +36,15 @@ and
 ```
 sbt 'run 10197'
 ```
-### To use the test only endpoints:
+### To use the test-only endpoints:
 ```
 sbt run -Dapplication.router=testOnlyDoNotUseInAppConf.Routes
 ```
+The test-only endpoint triggers the retrieval of the exchange rates from the ECB RSS feed.
+
+|Method |URI                                   |
+|:----: |--------------------------------------|
+|GET    | /forex-rates/test-only/retrieve-rates|
 
 
 Unit and Integration Tests
