@@ -16,6 +16,10 @@ Resources
 | GET    | /rates/{dateFrom}/{dateTo}/EUR/{targetCurrency}  | Retrieves exchange rates of EURO to targetCurrency on the specified date range.  |<pre>{<br>[<br>{<br>"date":"2021-10-12",<br>"baseCurrency":"EUR",<br>"targetCurrency":"GBP",<br>"value":0.8<br>},<br>{<br>"date":"2021-10-13",<br>"baseCurrency":"EUR",<br>"targetCurrency":"GBP",<br>"value":0.8<br>}]<br>}</pre>|
 | GET    | /rates/{dateFrom}/{dateTo}/{baseCurrency}/EUR  | Retrieves exchange rates of baseCurrency to EURO on the specified date range.  |<pre>{<br>[<br>{<br>"date":"2021-10-12",<br>"baseCurrency":"BGP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>},<br>{<br>"date":"2021-10-13",<br>"baseCurrency":"GBP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>}]<br>}</pre>|
 
+Requirements
+------------
+
+This service is written in [Scala](http://www.scala-lang.org/) and [Play](http://playframework.com/), so needs at least a [JRE] to run.
 
 ## Run the application
 
@@ -26,7 +30,7 @@ sm --start ONE_STOP_SHOP_ALL -r
 
 ### To run the application locally execute the following:
 ```
-sm --stop ONE_STOP_SHOP_RETURNS
+sm --stop FOREX_RATES
 ```
 and 
 ```
