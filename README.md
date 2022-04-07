@@ -15,6 +15,8 @@ Resources
 | GET    | /rates/{date}/{baseCurrency}/EUR              | Retrieves exchange rate of baseCurrency to EURO on the specified date.  |<pre>{<br>"date":"2021-10-31",<br>"baseCurrency":"GBP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>}</pre>|
 | GET    | /rates/{dateFrom}/{dateTo}/EUR/{targetCurrency}  | Retrieves exchange rates of EURO to targetCurrency on the specified date range.  |<pre>{<br>[<br>{<br>"date":"2021-10-12",<br>"baseCurrency":"EUR",<br>"targetCurrency":"GBP",<br>"value":0.8<br>},<br>{<br>"date":"2021-10-13",<br>"baseCurrency":"EUR",<br>"targetCurrency":"GBP",<br>"value":0.8<br>}]<br>}</pre>|
 | GET    | /rates/{dateFrom}/{dateTo}/{baseCurrency}/EUR  | Retrieves exchange rates of baseCurrency to EURO on the specified date range.  |<pre>{<br>[<br>{<br>"date":"2021-10-12",<br>"baseCurrency":"BGP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>},<br>{<br>"date":"2021-10-13",<br>"baseCurrency":"GBP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>}]<br>}</pre>|
+| GET    | /latest-rates/{numberOfRates}/EUR/{targetCurrency}| Retrieves the specified number of latest exchange rates of EURO to targetCurrency.|<pre>{<br>[<br>{<br>"date":"2021-10-12",<br>"baseCurrency":"EUR",<br>"targetCurrency":"GBP",<br>"value":0.8<br>},<br>{<br>"date":"2021-10-13",<br>"baseCurrency":"EUR",<br>"targetCurrency":"GBP",<br>"value":0.8<br>}]<br>}</pre>|
+| GET    | /latest-rates/{numberOfRates}/{baseCurrency}/EUR  | Retrieves the specified number of latest exchange rates of baseCurrency to EURO .  |<pre>{<br>[<br>{<br>"date":"2021-10-12",<br>"baseCurrency":"BGP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>},<br>{<br>"date":"2021-10-13",<br>"baseCurrency":"GBP",<br>"targetCurrency":"EUR",<br>"value":1.1<br>}]<br>}</pre>|
 
 Requirements
 ------------
