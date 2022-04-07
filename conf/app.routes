@@ -4,6 +4,10 @@ GET        /rates/:date/EUR/:targetCurrency                   uk.gov.hmrc.forexr
 
 GET        /rates/:dateFrom/:dateTo/EUR/:targetCurrency       uk.gov.hmrc.forexrates.controllers.ForexRatesController.getRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, targetCurrency: String)
 
-GET        /rates/:date/:baseCurrency/EUR                   uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverse(date: LocalDate, baseCurrency: String)
+GET        /rates/:date/:baseCurrency/EUR                     uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverse(date: LocalDate, baseCurrency: String)
 
-GET        /rates/:dateFrom/:dateTo/:baseCurrency/EUR       uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverseRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String)
+GET        /rates/:dateFrom/:dateTo/:baseCurrency/EUR         uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverseRatesInDateRange(dateFrom: LocalDate, dateTo: LocalDate, baseCurrency: String)
+
+GET        /latest-rates/:numberOfRates/EUR/:targetCurrency   uk.gov.hmrc.forexrates.controllers.ForexRatesController.getLatest(numberOfRates: Int, targetCurrency: String)
+
+GET        /latest-rates/:numberOfRates/:baseCurrency/EUR     uk.gov.hmrc.forexrates.controllers.ForexRatesController.getInverseLatest(numberOfRates: Int, baseCurrency: String)

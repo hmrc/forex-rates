@@ -73,5 +73,22 @@ class ForexRatesController @Inject()(
       }
     }
   }
+
+  def getLatest(numberOfRates: Int, targetCurrency: String): Action[AnyContent] = Action.async {
+    for{
+      exchangeRates <- repository.getLatest(numberOfRates, EURO, targetCurrency)
+    } yield {
+      Ok(Json.toJson(exchangeRates))
+    }
+  }
+
+  def getInverseLatest(numberOfRates: Int, baseCurrency: String): Action[AnyContent] = Action.async {
+    for {
+      exchangeRates <- repository.getLatest(numberOfRates, EURO, baseCurrency)
+    } yield {
+      val inverseRates = exchangeRates.map(rate => rate.copy(baseCurrency = rate.targetCurrency, targetCurrency = rate.baseCurrency, value = 1/rate.value))
+      Ok(Json.toJson(inverseRates))
+    }
+  }
 }
 

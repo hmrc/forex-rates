@@ -16,7 +16,6 @@
 
 package repositories
 
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
@@ -24,7 +23,7 @@ import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
-import uk.gov.hmrc.mongo.test.{CleanMongoCollectionSupport, DefaultPlayMongoRepositorySupport}
+import uk.gov.hmrc.mongo.test.{CleanMongoCollectionSupport, PlayMongoRepositorySupport}
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,7 +31,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ForexRepositorySpec
   extends AnyFreeSpec
     with Matchers
-    with DefaultPlayMongoRepositorySupport[ExchangeRate]
+    with PlayMongoRepositorySupport[ExchangeRate]
     with CleanMongoCollectionSupport
     with ScalaFutures
     with IntegrationPatience
@@ -93,6 +92,38 @@ class ForexRepositorySpec
       val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency).futureValue
 
       result mustBe multipleExchangeRates
+    }
+  }
+
+  ".getLatest(numberOfRates)" - {
+
+    "must return empty sequence when data is not found" in {
+
+      val result = repository.getLatest(5, baseCurrency, targetCurrency).futureValue
+
+      result mustBe Seq.empty
+    }
+
+    "must return a specified number of latest rates when present" in {
+
+      val numberOfRates = 3
+
+      val multipleExchangeRates = Seq(exchangeRate1.copy(date = dateFrom),
+        exchangeRate1.copy(date = dateTo),
+        exchangeRate1.copy(date = dateTo.plusDays(1)),
+        exchangeRate1.copy(date = dateTo.plusDays(2)),
+        exchangeRate1.copy(date = dateTo.plusDays(3)),
+        exchangeRate1.copy(date = dateTo.plusDays(4))
+
+      )
+
+      repository.insert(multipleExchangeRates, session).futureValue
+
+      val result = repository.getLatest(numberOfRates, baseCurrency, targetCurrency).futureValue
+
+      result mustBe Seq(exchangeRate1.copy(date = dateTo.plusDays(2)),
+        exchangeRate1.copy(date = dateTo.plusDays(3)),
+        exchangeRate1.copy(date = dateTo.plusDays(4))).reverse
     }
   }
 

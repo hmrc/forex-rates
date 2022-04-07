@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.forexrates.repositories
 
+import org.bson.conversions.Bson
 import org.mongodb.scala.ClientSession
-import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes}
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes, Sorts}
+import play.api.libs.json.Json
 import uk.gov.hmrc.forexrates.formats.ExchangeRateMongoFormatter
-import uk.gov.hmrc.forexrates.formats.ExchangeRateMongoFormatter._
 import uk.gov.hmrc.forexrates.logging.Logging
 import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.mongo.MongoComponent
@@ -27,9 +28,10 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.transaction.{TransactionConfiguration, Transactions}
 
 import java.time.LocalDate
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class ForexRepository @Inject()(
                                  val mongoComponent: MongoComponent,
                                )(implicit ec: ExecutionContext)
@@ -82,6 +84,17 @@ class ForexRepository @Inject()(
         Filters.equal("baseCurrency", baseCurrency),
         Filters.equal("targetCurrency", targetCurrency)
       ))
+      .toFuture()
+  }
+
+  def getLatest(numberOfRates: Int, baseCurrency: String, targetCurrency: String): Future[Seq[ExchangeRate]] = {
+    collection
+      .find(Filters.and(
+        Filters.equal("baseCurrency", baseCurrency),
+        Filters.equal("targetCurrency", targetCurrency)
+      ))
+      .sort(Sorts.descending("date"))
+      .limit(numberOfRates)
       .toFuture()
   }
 
