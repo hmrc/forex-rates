@@ -296,5 +296,123 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
       }
     }
   }
+
+  ".getLatest" - {
+    val dateTo = requestDate.plusDays(5)
+    val request = FakeRequest(GET, routes.ForexRatesController.getLatest(5, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.getLatest(any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.parse(exchangeRateSeqJson)
+      }
+    }
+
+    "must return empty sequence when data is not found" in {
+
+      when(mockRepository.getLatest(any(), any(), any())) thenReturn Future.successful(Seq.empty)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual JsArray()
+      }
+    }
+
+    "must throw exception when the call to the repository fails" in {
+
+      when(mockRepository.getLatest(any(), any(), any())) thenReturn Future.failed(new Exception("Error connecting to the db"))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        whenReady(result.failed) { exp => exp mustBe a[Exception] }
+
+      }
+    }
+  }
+
+  ".getInverseLatest" - {
+    val dateTo = requestDate.plusDays(5)
+    val request = FakeRequest(GET, routes.ForexRatesController.getInverseLatest(5, targetCurrency).url)
+
+    "must return forex rates when data is found" in {
+
+      when(mockRepository.getLatest(any(), any(), any())) thenReturn Future.successful(Seq(exchangeRate))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual Json.toJson(Seq(inverseExchangeRate))
+      }
+    }
+
+    "must return empty sequence when data is not found" in {
+
+      when(mockRepository.getLatest(any(), any(), any())) thenReturn Future.successful(Seq.empty)
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        status(result) mustEqual OK
+        contentAsJson(result) mustEqual JsArray()
+      }
+    }
+
+    "must throw exception when the call to the repository fails" in {
+
+      when(mockRepository.getLatest(any(), any(), any())) thenReturn Future.failed(new Exception("Error connecting to the db"))
+
+      val app =
+        applicationBuilder
+          .overrides(
+            bind[ForexRepository].toInstance(mockRepository))
+          .build()
+
+      running(app) {
+        val result = route(app, request).value
+
+        whenReady(result.failed) { exp => exp mustBe a[Exception] }
+
+      }
+    }
+  }
 }
 
