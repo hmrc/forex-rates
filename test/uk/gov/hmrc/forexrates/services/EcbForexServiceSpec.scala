@@ -11,18 +11,20 @@ import play.api.inject.bind
 import uk.gov.hmrc.forexrates.base.SpecBase
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.connectors.{EcbForexConnector, WireMockHelper}
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 
+import java.time.{Clock, Instant, LocalDate, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class EcbForexServiceSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
+  private val stubClock: Clock = Clock.fixed(LocalDate.now.atStartOfDay(ZoneId.systemDefault).toInstant, ZoneId.systemDefault)
   private val mockEcbForexConnector = mock[EcbForexConnector]
   private val mockForexRepository = mock[ForexRepository]
   private val mockAppConfig = mock[AppConfig]
-  private val service: EcbForexServiceImpl = new EcbForexServiceImpl(mockEcbForexConnector, mockForexRepository, mockAppConfig)
+  private val service: EcbForexServiceImpl = new EcbForexServiceImpl(mockEcbForexConnector, mockForexRepository, mockAppConfig, stubClock)
 
 
   override def beforeEach(): Unit = {
@@ -32,23 +34,25 @@ class EcbForexServiceSpec extends SpecBase with WireMockHelper with BeforeAndAft
   "EcbForexService#triggerFeedUpdate" - {
     val currency1 = "GBP"
     val currencies = Seq(currency1)
-    val exchangeRate1 = arbitrary[ExchangeRate].sample.value
-    val exchangeRate2 = arbitrary[ExchangeRate].sample.value.copy(date = exchangeRate1.date.plusDays(1))
+    val exchangeRate1 = arbitrary[RetrievedExchangeRate].sample.value
+    val exchangeRate2 = arbitrary[RetrievedExchangeRate].sample.value.copy(date = exchangeRate1.date.plusDays(1))
+    val exchangeRateToSave1 = ExchangeRate(exchangeRate1.date, exchangeRate1.baseCurrency, exchangeRate1.targetCurrency, exchangeRate1.value, Instant.now(stubClock))
+    val exchangeRateToSave2 = ExchangeRate(exchangeRate2.date, exchangeRate2.baseCurrency, exchangeRate2.targetCurrency, exchangeRate2.value, Instant.now(stubClock))
 
     "save all of the retrieved rates if they weren't previously saved" in {
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
-      when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
-      service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRate1, exchangeRate2)
-      verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRate1, exchangeRate2))
+      when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRateToSave1, exchangeRateToSave2))
+      service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRateToSave1, exchangeRateToSave2)
+      verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRateToSave1, exchangeRateToSave2))
     }
 
     "save only the rates that were not previously saved" in {
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
-      when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRate2))
-      service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRate2)
-      verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRate1, exchangeRate2))
+      when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRateToSave2))
+      service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRateToSave2)
+      verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRateToSave1, exchangeRateToSave2))
     }
 
     "must return an empty sequence if no rates were retrieved from ECB feed" in {

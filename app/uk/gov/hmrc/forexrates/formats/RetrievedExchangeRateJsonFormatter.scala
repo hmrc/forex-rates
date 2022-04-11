@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.forexrates.models
+package uk.gov.hmrc.forexrates.formats
 
-import java.time.LocalDate
+import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.forexrates.models.RetrievedExchangeRate
 
-case class ExchangeRate(date: LocalDate, baseCurrency: String, targetCurrency: String, value: BigDecimal)
+object RetrievedExchangeRateJsonFormatter {
+
+  implicit val exchangeRateFormat: Format[RetrievedExchangeRate] = Json.format[RetrievedExchangeRate]
+
+}

@@ -29,6 +29,7 @@ class AppConfig @Inject()
   config: Configuration,
   servicesConfig: ServicesConfig
 ) {
+  val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInDays")
 
   lazy val wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration("proxy", config)
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
