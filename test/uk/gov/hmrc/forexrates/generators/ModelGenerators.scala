@@ -18,12 +18,22 @@ package uk.gov.hmrc.forexrates.generators
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 
 trait ModelGenerators {
   self: Generators =>
+
+  implicit val arbitraryRetrievedExchangeRate: Arbitrary[RetrievedExchangeRate] =
+    Arbitrary {
+      for {
+        date <- datesBetween(LocalDate.of(2021, 9, 1), LocalDate.of(2022, 9, 1))
+        fromCurrency <- Gen.stringOfN(3, Gen.alphaChar)
+        toCurrency <- Gen.stringOfN(3, Gen.alphaChar)
+        value <- Gen.choose[BigDecimal](0, 1000000)
+      } yield RetrievedExchangeRate(date, fromCurrency, toCurrency, value)
+    }
 
   implicit val arbitraryExchangeRate: Arbitrary[ExchangeRate] =
     Arbitrary {
@@ -32,7 +42,6 @@ trait ModelGenerators {
         fromCurrency <- Gen.stringOfN(3, Gen.alphaChar)
         toCurrency <- Gen.stringOfN(3, Gen.alphaChar)
         value <- Gen.choose[BigDecimal](0, 1000000)
-      } yield ExchangeRate(date, fromCurrency, toCurrency, value)
+      } yield ExchangeRate(date, fromCurrency, toCurrency, value, Instant.now())
     }
-
 }

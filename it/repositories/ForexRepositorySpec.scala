@@ -16,16 +16,19 @@
 
 package repositories
 
+import org.mockito.MockitoSugar.when
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import org.scalatestplus.mockito.MockitoSugar.mock
+import uk.gov.hmrc.forexrates.config.AppConfig
+import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.mongo.test.{CleanMongoCollectionSupport, PlayMongoRepositorySupport}
 
-import java.time.LocalDate
+import java.time.{Clock, Instant, LocalDate, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class ForexRepositorySpec
@@ -37,9 +40,12 @@ class ForexRepositorySpec
     with IntegrationPatience
     with OptionValues {
 
+
+  private val appConfig = mock[AppConfig]
   override protected val repository =
     new ForexRepository(
-      mongoComponent = mongoComponent
+      mongoComponent = mongoComponent,
+      appConfig = appConfig
     )
 
   val session = mongoComponent.client.startSession().head().futureValue
@@ -48,12 +54,15 @@ class ForexRepositorySpec
   val baseCurrency = "Test"
   val targetCurrency = "Test2"
   val rate = BigDecimal(500)
+  val stubClock: Clock = Clock.fixed(LocalDate.of(2022, 1, 22).atStartOfDay(ZoneId.systemDefault).toInstant, ZoneId.systemDefault)
 
   val dateFrom = LocalDate.of(2022, 1, 20)
   val dateTo = LocalDate.of(2022, 1, 22)
 
-  val exchangeRate1 = ExchangeRate(requestDate, baseCurrency, targetCurrency, rate)
+  val exchangeRate1 = ExchangeRate(requestDate, baseCurrency, targetCurrency, rate, Instant.now(stubClock))
   val exchangeRate2 = exchangeRate1.copy(date = exchangeRate1.date.plusDays(1))
+
+  when(appConfig.cacheTtl) thenReturn 28
 
   ".get" - {
 
@@ -87,7 +96,7 @@ class ForexRepositorySpec
 
       val multipleExchangeRates = Seq(exchangeRate1.copy(date = dateFrom), exchangeRate1.copy(date = dateTo))
 
-      repository.insert(multipleExchangeRates, session)
+      repository.insert(multipleExchangeRates, session).futureValue
 
       val result = repository.get(dateFrom, dateTo, baseCurrency, targetCurrency).futureValue
 

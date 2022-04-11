@@ -19,7 +19,7 @@ package uk.gov.hmrc.forexrates.connectors
 import play.api.http.Status.OK
 import uk.gov.hmrc.forexrates.formats.Format
 import uk.gov.hmrc.forexrates.logging.Logging
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.models.RetrievedExchangeRate
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
@@ -28,7 +28,7 @@ import scala.xml.{Elem, Node, XML}
 
 object EcbForexHttpParser extends Logging {
 
-  type EcbForexResponse = Seq[ExchangeRate]
+  type EcbForexResponse = Seq[RetrievedExchangeRate]
 
   implicit object EcbForexReads extends HttpReads[EcbForexResponse] {
     override def read(method: String, url: String, response: HttpResponse): EcbForexResponse =
@@ -52,14 +52,14 @@ object EcbForexHttpParser extends Logging {
       }
   }
 
-  private def xmlToExchangeRate(baseElem: Elem): Seq[ExchangeRate] = {
+  private def xmlToExchangeRate(baseElem: Elem): Seq[RetrievedExchangeRate] = {
     val listOfItems = baseElem \\ "RDF" \\ "item"
     listOfItems.map { singleItem =>
       parseSingleExchangeRate(singleItem)
     }
   }
 
-  private def parseSingleExchangeRate(baseElem: Node): ExchangeRate = {
+  private def parseSingleExchangeRate(baseElem: Node): RetrievedExchangeRate = {
     val date = baseElem \\ "date"
     val testParsing = LocalDate.parse(date.text.split("T").head)
     val exchangeRateElem = baseElem \\ "statistics" \\ "exchangeRate"
@@ -69,7 +69,7 @@ object EcbForexHttpParser extends Logging {
     val targetCurrency = exchangeRateElem \\ "targetCurrency"
 
 
-    ExchangeRate(
+    RetrievedExchangeRate(
       testParsing,
       baseCurrency.text,
       targetCurrency.text,

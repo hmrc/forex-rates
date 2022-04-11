@@ -19,10 +19,11 @@ package uk.gov.hmrc.forexrates.services
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.connectors.EcbForexConnector
 import uk.gov.hmrc.forexrates.logging.Logging
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.forexrates.scheduler.ScheduledService
 
+import java.time.{Clock, Instant}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +32,8 @@ trait EcbForexService extends ScheduledService[Boolean] with Logging
 class EcbForexServiceImpl @Inject()(
                                      ecbForexConnector: EcbForexConnector,
                                      forexRepository: ForexRepository,
-                                     appConfig: AppConfig
+                                     appConfig: AppConfig,
+                                     clock: Clock
                                    ) extends EcbForexService {
 
 
@@ -56,7 +58,7 @@ class EcbForexServiceImpl @Inject()(
   private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
     ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
       .flatMap(feeds => if (feeds.nonEmpty) {
-        forexRepository.insertIfNotPresent(feeds)
+        forexRepository.insertIfNotPresent(feeds.map(retrievedRate => ExchangeRate(retrievedRate.date, retrievedRate.baseCurrency, retrievedRate.targetCurrency, retrievedRate.value, Instant.now(clock))))
       } else {
         logger.warn("No rates were retrieved from ECB")
         Future.successful(Seq.empty)

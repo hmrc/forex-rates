@@ -13,10 +13,10 @@ import play.api.libs.json.{JsArray, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.forexrates.connectors.WireMockHelper
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 import scala.concurrent.Future
 import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
@@ -27,19 +27,22 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
   private val requestDate = LocalDate.of(2022, 1, 22)
   private val targetCurrency = "Test2"
   private val rate = BigDecimal(500)
+  private val created = Instant.now()
 
   private val exchangeRate = ExchangeRate(
     date = requestDate,
     baseCurrency = "EUR",
     targetCurrency = targetCurrency,
-    value = rate
+    value = rate,
+    created = created
   )
 
   val inverseExchangeRate = ExchangeRate(
     date = requestDate,
     baseCurrency = targetCurrency,
     targetCurrency = "EUR",
-    value = 1/rate
+    value = 1/rate,
+    created = created
   )
 
   override def beforeEach(): Unit = {
@@ -53,7 +56,8 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
        |"date": "${requestDate.toString}",
        |"baseCurrency": "EUR",
        |"targetCurrency": "$targetCurrency",
-       |"value": $rate
+       |"value": $rate,
+       |"created": "${created.toString}"
        |}
        |""".stripMargin
 
