@@ -43,6 +43,7 @@ class EcbForexServiceImpl @Inject()(
     for {
       _ <- triggerFeedUpdate()
     } yield {
+      logger.info(s"[$jobName ran successfully]")
       true
     }
   }
