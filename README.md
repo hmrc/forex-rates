@@ -27,7 +27,7 @@ This service is written in [Scala](http://www.scala-lang.org/) and [Play](http:/
 
 To update from Nexus and start all services from the RELEASE version instead of snapshot
 ```
-sm --start ONE_STOP_SHOP_ALL -r
+sm --start FOREX_RATES_ALL -r
 ```
 
 ### To run the application locally execute the following:
