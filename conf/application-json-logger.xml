@@ -5,6 +5,8 @@
         <encoder class="uk.gov.hmrc.play.logging.JsonEncoder"/>
     </appender>
 
+    <logger name="application.uk.gov.hmrc.forexrates.services.EcbForexServiceImpl" level="${logger.uk.gov.hmrc.forexrates.services.EcbForexServiceImpl:-INFO}"/>
+
     <root level="WARN">
         <appender-ref ref="STDOUT"/>
     </root>
