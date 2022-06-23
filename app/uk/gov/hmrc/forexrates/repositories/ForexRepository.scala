@@ -17,11 +17,11 @@
 package uk.gov.hmrc.forexrates.repositories
 
 import org.mongodb.scala.ClientSession
-import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions, Indexes, Sorts}
+import org.mongodb.scala.model._
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.formats.ExchangeRateMongoFormatter
 import uk.gov.hmrc.forexrates.logging.Logging
-import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
+import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.transaction.{TransactionConfiguration, Transactions}

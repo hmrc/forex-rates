@@ -17,7 +17,6 @@
 package uk.gov.hmrc.forexrates.connectors
 
 import play.api.http.Status.OK
-import uk.gov.hmrc.forexrates.formats.Format
 import uk.gov.hmrc.forexrates.logging.Logging
 import uk.gov.hmrc.forexrates.models.RetrievedExchangeRate
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}

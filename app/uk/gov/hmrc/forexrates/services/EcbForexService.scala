@@ -19,7 +19,7 @@ package uk.gov.hmrc.forexrates.services
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.connectors.EcbForexConnector
 import uk.gov.hmrc.forexrates.logging.Logging
-import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
+import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.forexrates.scheduler.ScheduledService
 

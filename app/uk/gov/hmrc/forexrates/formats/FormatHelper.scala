@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.forexrates.formats
 
-import java.time.format.{DateTimeFormatter, FormatStyle}
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-object Format {
+object FormatHelper {
 
   val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter
     .ofPattern("yyyy-MM-dd")
