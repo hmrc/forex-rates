@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.forexrates.formats
 
-import play.api.libs.json.{Format, Json, OFormat}
-import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
+import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.forexrates.models.ExchangeRate
 
 object ExchangeRateJsonFormatter {
 

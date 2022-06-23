@@ -17,7 +17,7 @@
 package uk.gov.hmrc.forexrates.connectors
 
 import uk.gov.hmrc.forexrates.config.AppConfig
-import uk.gov.hmrc.forexrates.connectors.EcbForexHttpParser.{logger, _}
+import uk.gov.hmrc.forexrates.connectors.EcbForexHttpParser._
 import uk.gov.hmrc.forexrates.logging.Logging
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 

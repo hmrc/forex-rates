@@ -1,24 +1,23 @@
 package uk.gov.hmrc.forexrates.controllers
 
 import org.mockito.ArgumentMatchers.any
-import uk.gov.hmrc.forexrates.base.SpecBase
 import org.mockito.Mockito
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.MockitoSugar.when
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.libs.json.{JsArray, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.forexrates.base.SpecBase
 import uk.gov.hmrc.forexrates.connectors.WireMockHelper
-import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
+import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
+import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 
 import java.time.{Instant, LocalDate}
 import scala.concurrent.Future
-import uk.gov.hmrc.forexrates.formats.ExchangeRateJsonFormatter._
 
 class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
@@ -302,7 +301,6 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
   }
 
   ".getLatest" - {
-    val dateTo = requestDate.plusDays(5)
     val request = FakeRequest(GET, routes.ForexRatesController.getLatest(5, targetCurrency).url)
 
     "must return forex rates when data is found" in {
@@ -361,7 +359,6 @@ class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeA
   }
 
   ".getInverseLatest" - {
-    val dateTo = requestDate.plusDays(5)
     val request = FakeRequest(GET, routes.ForexRatesController.getInverseLatest(5, targetCurrency).url)
 
     "must return forex rates when data is found" in {

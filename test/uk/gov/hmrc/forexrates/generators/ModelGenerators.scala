@@ -17,7 +17,6 @@
 package uk.gov.hmrc.forexrates.generators
 
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalacheck.Arbitrary.arbitrary
 import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 
 import java.time.{Instant, LocalDate}

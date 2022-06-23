@@ -24,7 +24,7 @@ import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.forexrates.config.AppConfig
-import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
+import uk.gov.hmrc.forexrates.models.ExchangeRate
 import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import uk.gov.hmrc.mongo.test.{CleanMongoCollectionSupport, PlayMongoRepositorySupport}
 

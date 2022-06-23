@@ -17,7 +17,7 @@
 package uk.gov.hmrc.forexrates.models
 
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.forexrates.formats.Format
+import uk.gov.hmrc.forexrates.formats.FormatHelper
 import uk.gov.hmrc.forexrates.logging.Logging
 
 import java.time.LocalDate
@@ -29,7 +29,7 @@ package object Binders extends Logging {
 
     override def bind(key: String, value: String): Either[String, LocalDate] = {
       Try {
-        LocalDate.parse(value, Format.dateTimeFormatter)
+        LocalDate.parse(value, FormatHelper.dateTimeFormatter)
       } match {
         case Success(value) => Right(value)
         case Failure(_) => Left("Invalid date")
@@ -37,7 +37,7 @@ package object Binders extends Logging {
     }
 
     override def unbind(key: String, value: LocalDate): String =
-      Format.dateTimeFormatter.format(value)
+      FormatHelper.dateTimeFormatter.format(value)
   }
 
 }

@@ -16,17 +16,15 @@
 
 package uk.gov.hmrc.forexrates.connectors
 
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.forexrates.base.SpecBase
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.IntegrationPatience
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.time.{Seconds, Span}
-import org.xml.sax.SAXParseException
 import play.api.Application
 import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND}
-import play.api.libs.json.Json
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
+import uk.gov.hmrc.forexrates.base.SpecBase
 import uk.gov.hmrc.forexrates.models.RetrievedExchangeRate
 import uk.gov.hmrc.forexrates.testutils.EcbForexData
 

@@ -1,13 +1,12 @@
 package uk.gov.hmrc.forexrates.services
 
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, anyUrl, get, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
-import org.scalacheck.Arbitrary.arbitrary
 import org.mockito.ArgumentMatchersSugar.eqTo
 import org.mockito.Mockito
+import org.mockito.Mockito._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
-import play.api.inject.bind
 import uk.gov.hmrc.forexrates.base.SpecBase
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.connectors.{EcbForexConnector, WireMockHelper}

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.forexrates.formats
 
-import play.api.libs.json.{Json, OFormat, OWrites, Reads, __}
+import play.api.libs.json.{OFormat, OWrites, Reads, __}
 import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
