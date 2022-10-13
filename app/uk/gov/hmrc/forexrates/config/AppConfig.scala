@@ -18,9 +18,11 @@ package uk.gov.hmrc.forexrates.config
 
 import play.api.Configuration
 import play.api.libs.ws.WSProxyServer
+import uk.gov.hmrc.forexrates.formats.FormatHelper
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.http.ws.WSProxyConfiguration
 
+import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 
 @Singleton
@@ -38,4 +40,11 @@ class AppConfig @Inject()
   val ecbForexUrl: String = servicesConfig.baseUrl("ecb-forex") + "/" + config.get[String]("microservice.services.ecb-forex.basePath")
 
   val currencies: Seq[String] = config.get[Seq[String]]("features.forex-scheduler.currencies")
+
+  val rateLoggerEnabled: Boolean = config.get[Boolean]("features.rate-logger.enabled")
+  val rateLoggerBaseCurrency: String = config.get[String]("features.rate-logger.base-currency")
+  val rateLoggerTargetCurrency: String = config.get[String]("features.rate-logger.target-currency")
+  val rateLoggerDatesToCheck: Seq[LocalDate] = config.get[Seq[String]]("features.rate-logger.dates-to-check").map{ date =>
+    LocalDate.parse(date, FormatHelper.dateTimeFormatter)
+  }
 }
