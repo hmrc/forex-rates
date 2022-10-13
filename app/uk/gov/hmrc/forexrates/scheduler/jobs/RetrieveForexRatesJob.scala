@@ -19,21 +19,33 @@ package uk.gov.hmrc.forexrates.scheduler.jobs
 import akka.actor.ActorSystem
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
+import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.scheduler.ScheduledJob
 import uk.gov.hmrc.forexrates.scheduler.SchedulingActor.RetrieveExchangeRatesClass
-import uk.gov.hmrc.forexrates.services.EcbForexService
+import uk.gov.hmrc.forexrates.services.{EcbForexService, ExchangeRateLogger}
 
 import javax.inject.Inject
 
 trait RetrieveForexRatesJob extends ScheduledJob
-class RetrieveForexRatesJobImpl @Inject()(val config: Configuration,
-                                                val service: EcbForexService,
-                                                val applicationLifecycle: ApplicationLifecycle
-                                          ) extends RetrieveForexRatesJob {
 
-  val jobName: String           = "RetrieveForexRatesJob"
-  val actorSystem: ActorSystem  = ActorSystem(jobName)
+class RetrieveForexRatesJobImpl @Inject()(
+                                           val config: Configuration,
+                                           val service: EcbForexService,
+                                           val applicationLifecycle: ApplicationLifecycle,
+                                           val appConfig: AppConfig,
+                                           val exchangeRateLogger: ExchangeRateLogger
+                                         ) extends RetrieveForexRatesJob {
+
+  val jobName: String = "RetrieveForexRatesJob"
+  val actorSystem: ActorSystem = ActorSystem(jobName)
   val scheduledMessage: RetrieveExchangeRatesClass = RetrieveExchangeRatesClass(service)
+
+  if (appConfig.rateLoggerEnabled) {
+    logger.info(s"Rate logging is enabled. Checking rates from ${appConfig.rateLoggerBaseCurrency} to ${appConfig.rateLoggerTargetCurrency} with dates ${appConfig.rateLoggerDatesToCheck.mkString(",")}")
+    exchangeRateLogger.logPresenceOfRate(appConfig.rateLoggerDatesToCheck, appConfig.rateLoggerBaseCurrency, appConfig.rateLoggerTargetCurrency)
+  } else {
+    logger.info("Rate logging is not enabled")
+  }
 
   schedule
 

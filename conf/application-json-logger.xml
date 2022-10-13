@@ -6,6 +6,7 @@
     </appender>
 
     <logger name="application.uk.gov.hmrc.forexrates.services.EcbForexServiceImpl" level="${logger.uk.gov.hmrc.forexrates.services.EcbForexServiceImpl:-INFO}"/>
+    <logger name="application.uk.gov.hmrc.forexrates.services.ExchangeRateLogger" level="${logger.uk.gov.hmrc.forexrates.services.ExchangeRateLogger:-INFO}"/>
 
     <root level="WARN">
         <appender-ref ref="STDOUT"/>

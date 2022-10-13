@@ -58,12 +58,13 @@ class EcbForexServiceImpl @Inject()(
 
   private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
     ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
-      .flatMap(feeds => if (feeds.nonEmpty) {
-        forexRepository.insertIfNotPresent(feeds.map(retrievedRate => ExchangeRate(retrievedRate.date, retrievedRate.baseCurrency, retrievedRate.targetCurrency, retrievedRate.value, Instant.now(clock))))
-      } else {
-        logger.warn("No rates were retrieved from ECB")
-        Future.successful(Seq.empty)
-      }
+      .flatMap(feeds =>
+        if (feeds.nonEmpty) {
+          forexRepository.insertIfNotPresent(feeds.map(retrievedRate => ExchangeRate(retrievedRate.date, retrievedRate.baseCurrency, retrievedRate.targetCurrency, retrievedRate.value, Instant.now(clock))))
+        } else {
+          logger.warn("No rates were retrieved from ECB")
+          Future.successful(Seq.empty)
+        }
       )
   }
 
