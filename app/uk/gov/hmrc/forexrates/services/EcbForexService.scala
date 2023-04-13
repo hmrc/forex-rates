@@ -34,21 +34,21 @@ class EcbForexServiceImpl @Inject()(
                                      forexRepository: ForexRepository,
                                      appConfig: AppConfig,
                                      clock: Clock
-                                   ) extends EcbForexService {
+                                   ) (implicit ec: ExecutionContext) extends EcbForexService {
 
 
   override val jobName: String = "RetrieveForexRatesJob"
 
-  override def invoke(implicit ec: ExecutionContext): Future[Boolean] = {
+  override def invoke: Future[Boolean] = {
     for {
-      _ <- triggerFeedUpdate()
+      _ <- triggerFeedUpdate
     } yield {
       logger.info(s"[$jobName ran successfully]")
       true
     }
   }
 
-  def triggerFeedUpdate()(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
+  def triggerFeedUpdate: Future[Seq[ExchangeRate]] = {
     val allCurrencyInserts = appConfig.currencies.map { currency =>
       getRatesToSave(currency)
     }
@@ -56,7 +56,7 @@ class EcbForexServiceImpl @Inject()(
   }
 
 
-  private def getRatesToSave(currency: String)(implicit ec: ExecutionContext): Future[Seq[ExchangeRate]] = {
+  private def getRatesToSave(currency: String): Future[Seq[ExchangeRate]] = {
     ecbForexConnector.getFeed(currency).map(feeds => feeds.sortBy(_.date.toEpochDay))
       .flatMap(feeds =>
         if (feeds.nonEmpty) {

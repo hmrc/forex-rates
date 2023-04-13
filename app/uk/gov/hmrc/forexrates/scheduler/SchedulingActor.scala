@@ -20,7 +20,6 @@ import akka.actor.{Actor, ActorLogging, Props}
 import uk.gov.hmrc.forexrates.scheduler.SchedulingActor.ScheduledMessage
 import uk.gov.hmrc.forexrates.services.EcbForexService
 
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class SchedulingActor extends Actor with ActorLogging {
 

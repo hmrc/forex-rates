@@ -19,6 +19,7 @@ import uk.gov.hmrc.forexrates.repositories.ForexRepository
 import java.time.{Instant, LocalDate}
 import scala.concurrent.Future
 
+
 class ForexRatesControllerSpec extends SpecBase with WireMockHelper with BeforeAndAfterEach {
 
   private val mockRepository = mock[ForexRepository]
