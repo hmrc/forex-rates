@@ -42,7 +42,7 @@ class EcbForexServiceSpec extends SpecBase with WireMockHelper with BeforeAndAft
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
       when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRateToSave1, exchangeRateToSave2))
-      service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRateToSave1, exchangeRateToSave2)
+      service.triggerFeedUpdate.futureValue mustBe Seq(exchangeRateToSave1, exchangeRateToSave2)
       verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRateToSave1, exchangeRateToSave2))
     }
 
@@ -50,21 +50,21 @@ class EcbForexServiceSpec extends SpecBase with WireMockHelper with BeforeAndAft
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq(exchangeRate1, exchangeRate2))
       when(mockForexRepository.insertIfNotPresent(any())) thenReturn Future.successful(Seq(exchangeRateToSave2))
-      service.triggerFeedUpdate().futureValue mustBe Seq(exchangeRateToSave2)
+      service.triggerFeedUpdate.futureValue mustBe Seq(exchangeRateToSave2)
       verify(mockForexRepository, times(1)).insertIfNotPresent(Seq(exchangeRateToSave1, exchangeRateToSave2))
     }
 
     "must return an empty sequence if no rates were retrieved from ECB feed" in {
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq.empty)
-      service.triggerFeedUpdate().futureValue mustBe Seq.empty
+      service.triggerFeedUpdate.futureValue mustBe Seq.empty
       verifyNoInteractions(mockForexRepository)
     }
 
     "must handle errors from ECB feed" in {
       when(mockAppConfig.currencies) thenReturn currencies
       when(mockEcbForexConnector.getFeed(eqTo(currency1))) thenReturn Future.successful(Seq.empty)
-      service.triggerFeedUpdate().futureValue mustBe Seq.empty
+      service.triggerFeedUpdate.futureValue mustBe Seq.empty
       verifyNoInteractions(mockForexRepository)
     }
 
@@ -89,7 +89,7 @@ class EcbForexServiceSpec extends SpecBase with WireMockHelper with BeforeAndAft
 
       val serv = app.injector.instanceOf[EcbForexServiceImpl]
 
-      serv.triggerFeedUpdate().futureValue mustBe Seq.empty
+      serv.triggerFeedUpdate.futureValue mustBe Seq.empty
       verifyNoInteractions(mockForexRepository)
     }
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class AppConfig @Inject()
 ) {
   val cacheTtl: Int = config.get[Int]("mongodb.timeToLiveInDays")
 
-  lazy val wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration("proxy", config)
+  lazy val wsProxyServer: Option[WSProxyServer] = WSProxyConfiguration.buildWsProxyServer(config)
   val authBaseUrl: String = servicesConfig.baseUrl("auth")
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
