@@ -7,13 +7,13 @@ object AppDependencies {
 
   val compile = Seq(
     "uk.gov.hmrc"             %% "bootstrap-backend-play-28"  % "7.15.0",
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % "1.1.0",
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-play-28"         % "1.3.0",
     "com.enragedginger"       %%  "akka-quartz-scheduler"     % "1.9.1-akka-2.6.x"
   )
 
   val test = Seq(
     "uk.gov.hmrc"             %% "bootstrap-test-play-28"     % "7.15.0",
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-28"    % "1.1.0",
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-28"    % "1.3.0",
     "org.scalatest"           %% "scalatest"                  % "3.2.12",
     "org.scalatestplus.play"  %% "scalatestplus-play"         % "5.1.0",
     "org.scalatestplus"       %% "scalacheck-1-15"            % "3.2.11.0",
