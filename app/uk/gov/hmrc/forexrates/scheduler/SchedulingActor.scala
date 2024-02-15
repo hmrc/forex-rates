@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.forexrates.scheduler
 
-import akka.actor.{Actor, ActorLogging, Props}
+import org.apache.pekko.actor.{Actor, ActorLogging, Props}
 import uk.gov.hmrc.forexrates.scheduler.SchedulingActor.ScheduledMessage
 import uk.gov.hmrc.forexrates.services.EcbForexService
 

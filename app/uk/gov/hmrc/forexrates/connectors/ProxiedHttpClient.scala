@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.forexrates.connectors
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.ws.{WSClient, WSProxyServer}
 import play.api.Configuration
 import uk.gov.hmrc.forexrates.config.AppConfig
