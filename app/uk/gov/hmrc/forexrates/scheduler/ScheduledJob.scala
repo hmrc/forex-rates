@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.forexrates.scheduler
 
-import akka.actor.{ActorRef, ActorSystem}
-import com.typesafe.akka.extension.quartz.QuartzSchedulerExtension
+import org.apache.pekko.actor.{ActorRef, ActorSystem}
+import org.apache.pekko.extension.quartz.QuartzSchedulerExtension
 import play.api.Configuration
 import play.api.inject.ApplicationLifecycle
 import play.api.Logging
