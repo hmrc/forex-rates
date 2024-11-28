@@ -23,25 +23,22 @@ Requirements
 
 This service is written in [Scala](http://www.scala-lang.org/) and [Play](http://playframework.com/), so needs at least a [JRE] to run.
 
-## Run the application
+## Run the application locally via Service Manager
 
-To update from Nexus and start all services from the RELEASE version instead of snapshot
 ```
-sm --start FOREX_RATES_ALL -r
+sm2 --start FOREX_RATES_ALL -r
 ```
 
-### To run the application locally execute the following:
+### To run the application locally from the repository, execute the following:
 ```
-sm --stop FOREX_RATES
+sm2 --stop FOREX_RATES
 ```
 and 
 ```
-sbt 'run 10197'
-```
-### To use the test-only endpoints:
-```
 sbt run -Dapplication.router=testOnlyDoNotUseInAppConf.Routes
 ```
+### To use the test-only endpoints:
+
 The test-only endpoint triggers the retrieval of the exchange rates from the ECB RSS feed.
 
 |Method |URI                                   |
