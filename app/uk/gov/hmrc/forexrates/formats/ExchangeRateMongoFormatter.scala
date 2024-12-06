@@ -17,7 +17,7 @@
 package uk.gov.hmrc.forexrates.formats
 
 import play.api.libs.json.{OFormat, OWrites, Reads, __}
-import uk.gov.hmrc.forexrates.models.ExchangeRate
+import uk.gov.hmrc.forexrates.models.{ExchangeRate, RetrievedExchangeRate}
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 object ExchangeRateMongoFormatter {
@@ -50,5 +50,36 @@ object ExchangeRateMongoFormatter {
   }
 
   implicit val format: OFormat[ExchangeRate] = OFormat(reads, writes)
+
+}
+
+object RetrievedExchangeRateMongoFormatter {
+
+  val reads: Reads[RetrievedExchangeRate] = {
+
+    import play.api.libs.functional.syntax._
+
+    (
+      (__ \ "date").read(MongoJavatimeFormats.localDateFormat) and
+        (__ \ "baseCurrency").read[String] and
+        (__ \ "targetCurrency").read[String] and
+        (__ \ "value").read[BigDecimal]
+
+      ) (RetrievedExchangeRate.apply _)
+  }
+
+  val writes: OWrites[RetrievedExchangeRate] = {
+
+    import play.api.libs.functional.syntax._
+
+    (
+      (__ \ "date").write(MongoJavatimeFormats.localDateFormat) and
+        (__ \ "baseCurrency").write[String] and
+        (__ \ "targetCurrency").write[String] and
+        (__ \ "value").write[BigDecimal]
+      ) (retrievedExchangeRate => Tuple.fromProductTyped(retrievedExchangeRate))
+  }
+
+  implicit val format: OFormat[RetrievedExchangeRate] = OFormat(reads, writes)
 
 }
