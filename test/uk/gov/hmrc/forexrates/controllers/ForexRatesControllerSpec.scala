@@ -3,7 +3,7 @@ package uk.gov.hmrc.forexrates.controllers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.MockitoSugar.when
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status.OK
 import play.api.inject.bind

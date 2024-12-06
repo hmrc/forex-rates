@@ -46,7 +46,7 @@ object ExchangeRateMongoFormatter {
         (__ \ "targetCurrency").write[String] and
         (__ \ "value").write[BigDecimal] and
         (__ \ "created").write(MongoJavatimeFormats.instantFormat)
-      ) (unlift(ExchangeRate.unapply))
+      ) (exchangeRate => Tuple.fromProductTyped(exchangeRate))
   }
 
   implicit val format: OFormat[ExchangeRate] = OFormat(reads, writes)
@@ -77,7 +77,7 @@ object RetrievedExchangeRateMongoFormatter {
         (__ \ "baseCurrency").write[String] and
         (__ \ "targetCurrency").write[String] and
         (__ \ "value").write[BigDecimal]
-      ) (unlift(RetrievedExchangeRate.unapply))
+      ) (retrievedExchangeRate => Tuple.fromProductTyped(retrievedExchangeRate))
   }
 
   implicit val format: OFormat[RetrievedExchangeRate] = OFormat(reads, writes)

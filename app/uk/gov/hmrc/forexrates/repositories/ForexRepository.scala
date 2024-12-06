@@ -18,6 +18,7 @@ package uk.gov.hmrc.forexrates.repositories
 
 import org.mongodb.scala.ClientSession
 import org.mongodb.scala.model._
+import org.mongodb.scala.ObservableFuture
 import uk.gov.hmrc.forexrates.config.AppConfig
 import uk.gov.hmrc.forexrates.formats.ExchangeRateMongoFormatter
 import uk.gov.hmrc.forexrates.logging.Logging
