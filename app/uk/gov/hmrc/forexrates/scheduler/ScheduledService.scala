@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.forexrates.scheduler
 
-import scala.concurrent.{Future, ExecutionContext => ExC}
+import scala.concurrent.Future
 
 trait ScheduledService[R] {
   val jobName: String

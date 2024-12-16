@@ -19,7 +19,8 @@ lazy val microservice = Project(appName, file("."))
     RoutesKeys.routesImport ++= Seq(
       "java.time.LocalDate",
       "uk.gov.hmrc.forexrates.models.Binders._"
-    )
+    ),
+    scalacOptions ++= Seq("-Wconf:msg=Flag.*repeatedly:s", "-Wconf:src=routes/.*:s")
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(itSettings): _*)
