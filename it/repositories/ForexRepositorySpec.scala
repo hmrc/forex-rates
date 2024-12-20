@@ -16,11 +16,11 @@
 
 package repositories
 
-import org.mockito.MockitoSugar.when
+import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers.mustBe
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar.mock
 import uk.gov.hmrc.forexrates.config.AppConfig
@@ -42,7 +42,7 @@ class ForexRepositorySpec
 
 
   private val appConfig = mock[AppConfig]
-  override protected val repository =
+  override protected val repository: ForexRepository =
     new ForexRepository(
       mongoComponent = mongoComponent,
       appConfig = appConfig
@@ -62,7 +62,7 @@ class ForexRepositorySpec
   val exchangeRate1 = ExchangeRate(requestDate, baseCurrency, targetCurrency, rate, Instant.now(stubClock))
   val exchangeRate2 = exchangeRate1.copy(date = exchangeRate1.date.plusDays(1))
 
-  when(appConfig.cacheTtl) thenReturn 28
+  when(appConfig.cacheTtl) thenReturn 28L
 
   ".get" - {
 

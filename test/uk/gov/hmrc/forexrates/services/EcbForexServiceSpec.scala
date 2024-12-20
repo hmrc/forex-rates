@@ -1,8 +1,7 @@
 package uk.gov.hmrc.forexrates.services
 
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.scalacheck.Arbitrary.arbitrary

@@ -8,7 +8,7 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
     majorVersion                     := 0,
-    scalaVersion                     := "2.13.12",
+    scalaVersion                     := "3.3.4",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
 
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;" +
@@ -19,7 +19,8 @@ lazy val microservice = Project(appName, file("."))
     RoutesKeys.routesImport ++= Seq(
       "java.time.LocalDate",
       "uk.gov.hmrc.forexrates.models.Binders._"
-    )
+    ),
+    scalacOptions ++= Seq("-Wconf:msg=Flag.*repeatedly:s", "-Wconf:src=routes/.*:s")
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(itSettings): _*)

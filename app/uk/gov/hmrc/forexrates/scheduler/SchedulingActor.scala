@@ -34,7 +34,7 @@ object SchedulingActor {
     val service: ScheduledService[A]
   }
 
-  def props: Props = Props[SchedulingActor]
+  def props: Props = Props[SchedulingActor]()
 
   case class RetrieveExchangeRatesClass(service: EcbForexService) extends ScheduledMessage[Boolean]
 
