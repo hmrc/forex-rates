@@ -17,26 +17,25 @@
 package uk.gov.hmrc.forexrates.connectors
 
 import uk.gov.hmrc.forexrates.config.AppConfig
-import uk.gov.hmrc.forexrates.connectors.EcbForexHttpParser._
+import uk.gov.hmrc.forexrates.connectors.EcbForexHttpParser.*
 import uk.gov.hmrc.forexrates.logging.Logging
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpException, StringContextOps}
+
 import java.net.URL
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class EcbForexConnector @Inject()(
-                                   httpClient: ProxiedHttpClient,
-                                   appConfig: AppConfig
+                                   httpClientV2: HttpClientV2,
+                                   appConfig: AppConfig,
                                  )(implicit ec: ExecutionContext) extends Logging {
 
   def getFeed(currency: String): Future[EcbForexResponse] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
     val urlString = appConfig.ecbForexUrl + s"/rss/fxref-${currency.toLowerCase}.html"
     val url = new URL(urlString)
-    httpClient.GET[EcbForexResponse](
-      url = url,
-      headers = Seq.empty
-    ).recover {
+    httpClientV2.get(url"$url").withProxy.execute[EcbForexResponse].recover {
       case e: HttpException =>
         logger.error(s"Error response from ECB $url, received status ${e.responseCode}, body of response was: ${e.message}")
         Seq.empty
