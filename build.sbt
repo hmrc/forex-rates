@@ -8,7 +8,7 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .settings(
     majorVersion                     := 0,
-    scalaVersion                     := "3.3.4",
+    scalaVersion                     := "3.3.6",
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
 
     ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;" +
@@ -26,7 +26,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(inConfig(IntegrationTest)(itSettings): _*)
   .configs(Test)
   .settings(inConfig(Test)(testSettings): _*)
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(PlayKeys.playDefaultPort := 10197)
 
 
